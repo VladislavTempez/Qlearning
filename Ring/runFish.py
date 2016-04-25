@@ -1,8 +1,8 @@
 from fish import *
 popSize = 5
-runDuration = 500
+runDuration = 50
 ringSize = 19
-reward=100
+reward=10
 punition=-2
 previousKnowledge={}
 def rewards(state):
@@ -13,6 +13,18 @@ def rewards(state):
         return -punition
     else :
         return 0
+def printHistory(pop):
+    globalHistory=[]
+    emptyBoard={}
+    for i in range(ringSize):
+        emptyBoard['Pos'+str(i)]=[]
+    for i in range(runDuration):
+        globalHistory.append(emptyBoard.copy())
+    for fish in pop:
+        print(len(fish.posHistory))
+        for i in range(len(fish.posHistory)):
+            globalHistory[i]['Pos'+str(fish.posHistory[i])].append(fish.idFish)
+   
 
 pop = []
 
@@ -30,9 +42,10 @@ for t in range(runDuration) :
         if f.lastReward == reward:
             f.eligibilityTrace=[]
             f.pos=random.randint(0,ringSize-1)
-for f in pop :
-    print(f.idFish)
-    print(f.stateHistory)
-    for key,value in f.Q.items():
-        print(key)
-        print(value)
+#for f in pop :
+#    print(f.idFish)
+#    print(f.stateHistory)
+#    for key,value in f.Q.items():
+#        print(key)
+#        print(value)
+printHistory(pop)
