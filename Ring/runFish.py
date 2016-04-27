@@ -38,6 +38,8 @@ for t in range(runDuration) :
         f.decide()
     for f in pop :
         f.act()
+    for f in pop :
+        f.updateQ()
 for t in range(runDuration) :
     for f in pop:
         if f.lastReward == reward:
