@@ -1,6 +1,6 @@
 from fish import *
 popSize = 5
-runDuration = 50
+runDuration = 500
 ringSize = 19
 reward=10
 punition=-2
@@ -10,7 +10,7 @@ def rewards(state):
     if near > 2:
         return reward
     elif near < 2:
-        return -punition
+        return punition
     else :
         return 0
 def printHistory(pop):
@@ -38,14 +38,21 @@ for t in range(runDuration) :
         f.decide()
     for f in pop :
         f.act()
+for t in range(runDuration) :
     for f in pop:
         if f.lastReward == reward:
+            print(f.getState())
             f.eligibilityTrace=[]
             f.pos=random.randint(0,ringSize-1)
-#for f in pop :
-#    print(f.idFish)
+            f.timeToGoalHistory.append(f.timeToGoal)
+            f.timeToGoal = 0
+        else :
+            f.timeToGoal=f.timeToGoal + 1
+for f in pop :
+    print(f.idFish)
+    print(f.timeToGoalHistory)
 #    print(f.stateHistory)
-#    for key,value in f.Q.items():
-#        print(key)
-#        print(value)
-printHistory(pop)
+    for key,value in f.Q.items():
+        print(key)
+        print(value)
+#printHistory(pop)
