@@ -11,6 +11,7 @@ random.seed()
 class Fish:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	def __init__(self,idFish,ringSize,vision,rewards,previousKnowledge  ,pos = 0,learningRate = 0.2,exploreRate = 0.1):
 	        self.idFish = idFish
 	        self.ringSize = ringSize
@@ -106,6 +107,8 @@ class Fish:
 =======
 =======
 >>>>>>> parent of 247c7d6... adding missing file
+=======
+>>>>>>> parent of 247c7d6... adding missing file
 	def __init__(self,idFish,ringSize,vision,previousKnowledge={},pos = 0,learningRate = 1,exploreRate = 0.0):
 		self.idFish = idFish
 		self.Q = previousKnowledge
@@ -172,6 +175,9 @@ class Fish:
 	def __lt__(self,fish):
 		return self.idFish<fish.idFish
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 247c7d6... adding missing file
+=======
 >>>>>>> parent of 247c7d6... adding missing file
 =======
 >>>>>>> parent of 247c7d6... adding missing file
