@@ -1,18 +1,22 @@
 from fish import *
+import matplotlib.pyplot as plt
 popSize = 5
-runDuration = 500
-ringSize = 19
-reward=10
+runDuration = 10000
+ringSize = 43 
+reward=1000
 punition=-2
 previousKnowledge={}
+modifyExploRate=True
+exploRateDecrease = 0.995
 def rewards(state):
     near,left,right = state
-    if near > 2:
+    if near >= 3:
         return reward
     elif near < 2:
         return punition
     else :
         return 0
+
 def printHistory(pop):
     globalHistory=[]
     emptyBoard={}
@@ -29,32 +33,39 @@ def printHistory(pop):
 pop = []
 
 for i in range(popSize):
-    pop.append(Fish(newID(),ringSize,[],rewards,previousKnowledge.copy()))
+    pop.append(Fish(newID(),ringSize,[],rewards))
 for f in pop :
     f.pos = random.randint(0, ringSize -1)
     f.vision = pop
+for f in pop:
+    if modifyExploRate :
+            f.exploreRate = 1
+    f.lookAround()
 for t in range(runDuration) :
     for f in pop :
         f.decide()
     for f in pop :
         f.act()
     for f in pop :
+        f.lookAround()
+    for f in pop :
         f.updateQ()
-for t in range(runDuration) :
-    for f in pop:
-        if f.lastReward == reward:
-            print(f.getState())
-            f.eligibilityTrace=[]
-            f.pos=random.randint(0,ringSize-1)
-            f.timeToGoalHistory.append(f.timeToGoal)
-            f.timeToGoal = 0
-        else :
-            f.timeToGoal=f.timeToGoal + 1
+        if modifyExploRate :
+            f.exploreRate = f.exploreRate * exploRateDecrease
 for f in pop :
+    plt.plot(f.timeToGoalHistory)
     print(f.idFish)
-    print(f.timeToGoalHistory)
-#    print(f.stateHistory)
     for key,value in f.Q.items():
         print(key)
         print(value)
-#printHistory(pop)
+plt.ylabel('TimeToReachGoal')
+plt.xlabel('NumberOfTrial')
+title = 'Population=' + str(popSize)
+title = title + ';runDuration=' + str(runDuration)
+title = title + ";ringSize=" + str(ringSize)
+title = title  + ';ID:' + str(newID())
+if modifyExploRate :
+        title=title+'exploRateDecreasing'
+plt.title(title)
+plt.savefig('./'+title)
+plt.show()
