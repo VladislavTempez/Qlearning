@@ -1,71 +1,109 @@
+################################################
+#                 Dependencies                 #
+################################################
+
 from fish import *
 import matplotlib.pyplot as plt
+
+################################################
+#                 Parameters                   #
+################################################
+
 popSize = 5
-runDuration = 10000
-ringSize = 43 
-reward=1000
-punition=-2
-previousKnowledge={}
-modifyExploRate=True
-exploRateDecrease = 0.995
+runDuration = 3000
+ringSize = 45 
+reward = 10
+punition = -2
+previousKnowledge = {}
+
+#Setting the explore rate evolution. alpha / (alpha + n). 
+
+decreasePoint = 2 /3 # Fraction of the run at which exploreRate is decreaseValue
+decreaseValue = 3 / 1000
+
 def rewards(state):
     near,left,right = state
-    if near >= 3:
+    if near >= 4:
         return reward
     elif near < 2:
         return punition
     else :
         return 0
 
-def printHistory(pop):
-    globalHistory=[]
-    emptyBoard={}
-    for i in range(ringSize):
-        emptyBoard['Pos'+str(i)]=[]
-    for i in range(runDuration):
-        globalHistory.append(emptyBoard.copy())
-    for fish in pop:
-        print(len(fish.posHistory))
-        for i in range(len(fish.posHistory)):
-            globalHistory[i]['Pos'+str(fish.posHistory[i])].append(fish.idFish)
+################################################
+#                 Useful values                #
+################################################
+
+alpha = decreaseValue * runDuration / (1 - decreaseValue)
+
+def reset(pop,date):
+    totalDistanceAtGoal = 0
+    numFish = 0
+    for f in pop:
+        if f.lastReward>0:
+            totalDistanceAtGoal = totalDistanceAtGoal + f.moveStock
+            f.moveStock = 0
+            numFish = numFish + 1
+            f.eligibilityTrace.clear()
+            f.pos = pop.index(f) * math.ceil(ringSize / popSize) % f.ringSize
+            f.dateOfResetHistory.append(date)
+    return(totalDistanceAtGoal,numFish)
    
+def smoothCurve(curve,windowsSize):
+    res=[]
+    for j in range(len(curve)-windowsSize):
+        res.append(0)
+        for i in range(windowsSize):
+            res[j] = res[j] + curve[i+j]
+        res[j] =res[j] / windowsSize
+    return res
+################################################
+#            Variables Initialization          #
+################################################
 
 pop = []
 
+averageDistanceSinceGoal=[]
+averageDistanceWhenReachingGoal=[]
 for i in range(popSize):
-    pop.append(Fish(newID(),ringSize,[],rewards))
+    pop.append(Fish(idFish = newID(), ringSize = ringSize, rewards = rewards,
+        alpha = alpha))
+
 for f in pop :
-    f.pos = random.randint(0, ringSize -1)
+    f.pos = pop.index(f) * math.ceil(ringSize / popSize) % f.ringSize
     f.vision = pop
-for f in pop:
-    if modifyExploRate :
-            f.exploreRate = 1
-    f.lookAround()
+    f.currentState = f.getState(f)
+    f.posHistory.append(f.pos)
+    f.stateHistory.append(f.currentState)
+
+
+################################################
+#            Main Loop                         #
+################################################
+
 for t in range(runDuration) :
+    averageDistanceSinceGoal.append(0)
+    averageDistanceWhenReachingGoal.append(0)
     for f in pop :
         f.decide()
     for f in pop :
         f.act()
     for f in pop :
-        f.lookAround()
-    for f in pop :
-        f.updateQ()
-        if modifyExploRate :
-            f.exploreRate = f.exploreRate * exploRateDecrease
-for f in pop :
-    plt.plot(f.timeToGoalHistory)
-    print(f.idFish)
-    for key,value in f.Q.items():
-        print(key)
-        print(value)
-plt.ylabel('TimeToReachGoal')
-plt.xlabel('NumberOfTrial')
-title = 'Population=' + str(popSize)
-title = title + ';runDuration=' + str(runDuration)
-title = title + ";ringSize=" + str(ringSize)
-title = title  + ';ID:' + str(newID())
-if modifyExploRate :
-        title=title+'exploRateDecreasing'
-plt.title(title)
-plt.savefig('./'+title)
+        f.update()
+    totalDistanceAtGoal,numFish = reset(pop,t)
+    if (numFish == 0):
+        averageDistanceWhenReachingGoal[t] = -1
+    else :
+        averageDistanceWhenReachingGoal[t] = totalDistanceAtGoal / numFish
+    for f in pop:
+        averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] + f.moveStock
+    averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / popSize
+
+################################################
+#                 After Run process            #
+################################################
+for f in pop:
+    f.genLogs()
+
+plt.plot(averageDistanceWhenReachingGoal)
 plt.show()
