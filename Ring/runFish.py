@@ -3,14 +3,16 @@
 ################################################
 
 from fish import *
-import matplotlib.pyplot as plt
+import math
+import time
+#import matplotlib.pyplot as plt
 
 ################################################
 #                 Parameters                   #
 ################################################
 
 popSize = 5
-runDuration = 3000
+runDuration = 1000
 ringSize = 45 
 reward = 10
 punition = -2
@@ -23,7 +25,7 @@ decreaseValue = 3 / 1000
 
 def rewards(state):
     near,left,right = state
-    if near >= 4:
+    if near >= 3:
         return reward
     elif near < 2:
         return punition
@@ -105,5 +107,28 @@ for t in range(runDuration) :
 for f in pop:
     f.genLogs()
 
-plt.plot(averageDistanceWhenReachingGoal)
-plt.show()
+date=time.time()
+idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
+timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
+
+logRun=open('logRunD='+str(runDuration)+'P='+str(popSize)+'S='+str(ringSize)+'-'+timeNow+'-'+str(idFile),'w')
+
+logRun.write('runDuration: ' + str(runDuration) + '\n')
+logRun.write('popSize: ' + str(popSize) + '\n')
+logRun.write('ringSize: ' + str(ringSize) + '\n')
+logRun.write('decreasePoint: ' + str(decreasePoint) + '\n')
+logRun.write('decreaseValue: ' + str(decreaseValue) + '\n')
+
+logRun.write('averageDistanceSinceGoal')
+logRun.write('\n')
+logRun.write(str(averageDistanceSinceGoal))
+logRun.write('\n')
+
+logRun.write('averageWhenReachingGoal')
+logRun.write('\n')
+logRun.write(str(averageDistanceWhenReachingGoal))
+logRun.write('\n')
+
+logRun.close()
+#plt.plot(averageDistanceWhenReachingGoal)
+#plt.show()
