@@ -24,7 +24,7 @@ def getState(self):
     right = 0
     for fish in self.vision:
         if self.distance(fish) <= self.criticalSize:
-            near = near + 1
+            near = near + 2
         elif fish.pos - self.pos > self.ringSize / 2 :
             left = left + 1
         else :
