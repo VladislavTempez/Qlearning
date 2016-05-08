@@ -1,6 +1,6 @@
-################################################
-#                 Dependencies                 #
-################################################
+###############################################
+#                Dependencies                 #
+###############################################
 
 from fish import *
 import math
@@ -12,7 +12,7 @@ import time
 ################################################
 
 popSize = 5
-runDuration = 1000
+runDuration = 90000
 ringSize = 45 
 reward = 10
 punition = -2
@@ -26,11 +26,11 @@ decreaseValue = 3 / 1000
 def rewards(state):
     near,left,right = state
     if near >= 3:
-        return reward
+        return reward - punition
     elif near < 2:
-        return punition
-    else :
         return 0
+    else :
+        return -punition
 
 ################################################
 #                 Useful values                #
@@ -46,7 +46,6 @@ def reset(pop,date):
             totalDistanceAtGoal = totalDistanceAtGoal + f.moveStock
             f.moveStock = 0
             numFish = numFish + 1
-            f.eligibilityTrace.clear()
             f.pos = pop.index(f) * math.ceil(ringSize / popSize) % f.ringSize
             f.dateOfResetHistory.append(date)
     return(totalDistanceAtGoal,numFish)

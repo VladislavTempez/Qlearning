@@ -1,6 +1,6 @@
-################################################
-#                 Dependencies                 #
-################################################
+###############################################
+#                Dependencies                 #
+###############################################
 
 import math
 import random
@@ -34,10 +34,7 @@ def getState(self):
 random.seed()
 
 class Fish:
-    def __init__(self, idFish, ringSize, rewards, vision=[], getState =
-            getState, previousKnowledge = {}, pos = 0, learningRate = 1,
-            exploreRate = 1, criticalSize = 2, learningDecreaseRate = 1, alpha =
-            10**100):
+    def __init__(self, idFish, ringSize, rewards, vision=[], getState = getState, previousKnowledge = {}, pos = 0, learningRate = 1, exploreRate = 1, criticalSize = 2, learningDecreaseRate = 1, alpha = 10**10):
         self.idFish = idFish
         self.ringSize = ringSize
         self.criticalSize = criticalSize
@@ -48,7 +45,7 @@ class Fish:
         self.learningDecreaseRate = learningDecreaseRate
         self.exploreRate = exploreRate
         self.alpha = alpha
-        self.memoryDecrease = 0.95
+        self.discountFactor = 0.8
         self.speed = 1 
         self.rewards = rewards
         self.age = 0
@@ -59,7 +56,6 @@ class Fish:
         self.lastReward = 0
         self.getState = getState
         self.states = []
-        self.eligibilityTrace = []
         self.posHistory = []
         self.stateHistory = []
         self.dateOfResetHistory = []
@@ -96,33 +92,53 @@ class Fish:
                     self.nextAction = maxAction
             else : # nothing is known about this state, random decision
                 self.nextAction = random.choice(['left','right','dontMove'])
+    def checkWhatHappens(self,action):
+        if action == 'dontMove':
+            return self.currentState
+        else:
+            if action == 'left' :
+                self.actions['left'](self)
+                resultingState = self.getState(self)
+                self.actions['right'](self)
+                self.moveStock = self.moveStock - 2* self.speed
+                return resultingState
+            else: #action == right
+                self.actions['right'](self)
+                resultingState = self.getState(self)
+                self.actions['left'](self)
+                self.moveStock = self.moveStock - 2* self.speed
+                return resultingState
+
 
     def update(self):
-        self.lastState=self.currentState
-        self.currentState=self.getState(self)
+        self.lastState = self.currentState
+        self.currentState = self.getState(self)
         self.stateHistory.append(self.currentState)
         self.posHistory.append(self.pos)
-        self.eligibilityTrace = [(s,a,self.memoryDecrease * v) for (s,a,v) in self.eligibilityTrace]
-        if self.lastAction != None: #at the start, there is no action to add in eligibility trace
-            self.eligibilityTrace.append((self.lastState,self.lastAction,1))
         self.exploreRate = self.alpha / (self.alpha + self.age)
         self.age = self.age + 1
         self.learningRate = self.learningRate * self.learningDecreaseRate
         reward = self.rewards(self.currentState)
         self.lastReward = reward
-        if reward == 0:
-            return
-        else:
-            for (s,a,v) in self.eligibilityTrace:
-                if s in self.Q.keys():
-                    if a in self.Q[s].keys():
-                        self.Q[s][a] = self.Q[s][a] * (1 - self.learningRate) + reward * v * self.learningRate
-                    else :
-                        self.Q[s][a] = reward * v * self.learningRate
-                else :
-                    self.Q[s]={a : reward * v * self.learningRate}
-
-
+        #Computing the maximum value neighbour   
+        maxValue = 0
+        for a in self.actions.keys():
+            neighbourState = self.checkWhatHappens(a)
+            try:
+                neighbouringReward =  max(value for key,value in self.Q[neighbourState].items())
+            except ValueError:
+                neighbouringReward = 0
+            except KeyError:
+                neighbouringReward = 0
+            if neighbouringReward > maxValue :
+                maxValue = neighbouringReward
+        if (self.currentState in self.Q.keys()):
+            if (self.lastAction in self.Q[self.currentState].keys()):
+                self.Q[self.currentState][self.lastAction] = self.Q[self.currentState][self.lastAction] * (1-self.learningRate) + self.learningRate * (reward + self.discountFactor * maxValue)
+            else:
+                self.Q[self.currentState][self.lastAction] = self.learningRate * (reward + self.discountFactor * maxValue)
+        else :
+            self.Q[self.currentState] = {self.lastAction : self.learningRate * (reward + self.discountFactor * maxValue)}
     def act(self) :
         self.lastAction = self.nextAction
         self.actions[self.nextAction](self)
