@@ -18,21 +18,31 @@ def newID():
     fishId = fishId + 1
     return newId                                                                                                                                                                            
                                                                                                                                                                                             
-def getState(self):                                                                                                                                                                         
-    near = 0                                                                                                                                                                                
-    left = 0                                                                                                                                                                                
-    right = 0                                                                                                                                                                               
-    for fish in self.vision:                                                                                                                                                                
-        if self.distance(fish) <= self.criticalSize:                                                                                                                                        
-            near = near + 1                                                                                                                                                                 
-        elif fish.pos - self.pos > self.ringSize / 2 :                                                                                                                                      
-            left = left + 1                                                                                                                                                                 
-        else :                                                                                                                                                                              
-            right = right + 1                                                                                                                                                               
-    return (near,left,right)                                                                                                                                                                
-                                                                                                                                                                                            
-random.seed()                                                                                                                                                                               
+def getState(self):
+    near = 0
+    leftNear = 0
+    rightNear = 0
+    leftFar = 0
+    rightFar = 0
+    far = 0
+    for fish in self.vision:
+        if self.distance(fish) <= self.criticalSize:
+            near = near + 1
+        elif : self.distance(fish) <= math.ceil((self.ringSize-2*self.criticalSize)/ 6)*2 + self.criticalSize:
+            if fish.pos - self.pos > self.ringSize / 2 : 
+                leftNear = leftNear + 1
+            else :
+                rightNear = rightNear + 1
+        elif : self.distance(fish) <= math.ceil((self.ringSize-2*self.criticalSize)/ 6)*3 + self.criticalSize:
+            if fish.pos - self.pos > self.ringSize / 2 : 
+                leftFar = leftFar + 1
+            else :
+                rightFar = rightFar + 1
+        else :                                                                                                                                                                 
+            far = far + 1 
+    return (near,leftNear,rightNear,leftFar,rightFar,far) 
 
+random.seed()
 class Fish:
     def __init__(self, idFish, ringSize, rewards, vision=[], getState =
             getState, previousKnowledge = {}, pos = 0, learningRate = 1,

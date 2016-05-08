@@ -24,11 +24,13 @@ decreasePoint = 2 /3 # Fraction of the run at which exploreRate is decreaseValue
 decreaseValue = 3 / 1000
 
 def rewards(state):
-    near,left,right = state
+    near,leftNear,rightNear,leftFar,rightFar,far = state
     if near >= 3:
         return reward
     elif near < 2:
         return punition
+    elif leftNear+rightNear >= 3
+        return reward/10
     else :
         return 0
 
