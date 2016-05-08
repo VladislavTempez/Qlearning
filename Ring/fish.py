@@ -1,6 +1,6 @@
-###############################################
-#                Dependencies                 #
-###############################################
+################################################
+#                 Dependencies                 #
+################################################
 
 import math
 import random
@@ -16,25 +16,28 @@ def newID():
     global fishId
     newId=fishId
     fishId = fishId + 1
-    return newId
-
-def getState(self):
-    near = 0
-    left = 0
-    right = 0
-    for fish in self.vision:
-        if self.distance(fish) <= self.criticalSize:
-            near = near + 1
-        elif fish.pos - self.pos > self.ringSize / 2 :
-            left = left + 1
-        else :
-            right = right + 1
-    return (near,left,right)
-
-random.seed()
+    return newId                                                                                                                                                                            
+                                                                                                                                                                                            
+def getState(self):                                                                                                                                                                         
+    near = 0                                                                                                                                                                                
+    left = 0                                                                                                                                                                                
+    right = 0                                                                                                                                                                               
+    for fish in self.vision:                                                                                                                                                                
+        if self.distance(fish) <= self.criticalSize:                                                                                                                                        
+            near = near + 1                                                                                                                                                                 
+        elif fish.pos - self.pos > self.ringSize / 2 :                                                                                                                                      
+            left = left + 1                                                                                                                                                                 
+        else :                                                                                                                                                                              
+            right = right + 1                                                                                                                                                               
+    return (near,left,right)                                                                                                                                                                
+                                                                                                                                                                                            
+random.seed()                                                                                                                                                                               
 
 class Fish:
-    def __init__(self, idFish, ringSize, rewards, vision=[], getState = getState, previousKnowledge = {}, pos = 0, learningRate = 1, exploreRate = 1, criticalSize = 2, learningDecreaseRate = 1, alpha = 10**10):
+    def __init__(self, idFish, ringSize, rewards, vision=[], getState =
+            getState, previousKnowledge = {}, pos = 0, learningRate = 1,
+            exploreRate = 1, criticalSize = 2, learningDecreaseRate = 1, alpha =
+            10**100):
         self.idFish = idFish
         self.ringSize = ringSize
         self.criticalSize = criticalSize
@@ -45,7 +48,7 @@ class Fish:
         self.learningDecreaseRate = learningDecreaseRate
         self.exploreRate = exploreRate
         self.alpha = alpha
-        self.discountFactor = 0.8
+        self.memoryDecrease = 0.95
         self.speed = 1 
         self.rewards = rewards
         self.age = 0
@@ -56,6 +59,7 @@ class Fish:
         self.lastReward = 0
         self.getState = getState
         self.states = []
+        self.eligibilityTrace = []
         self.posHistory = []
         self.stateHistory = []
         self.dateOfResetHistory = []
@@ -92,53 +96,33 @@ class Fish:
                     self.nextAction = maxAction
             else : # nothing is known about this state, random decision
                 self.nextAction = random.choice(['left','right','dontMove'])
-    def checkWhatHappens(self,action):
-        if action == 'dontMove':
-            return self.currentState
-        else:
-            if action == 'left' :
-                self.actions['left'](self)
-                resultingState = self.getState(self)
-                self.actions['right'](self)
-                self.moveStock = self.moveStock - 2* self.speed
-                return resultingState
-            else: #action == right
-                self.actions['right'](self)
-                resultingState = self.getState(self)
-                self.actions['left'](self)
-                self.moveStock = self.moveStock - 2* self.speed
-                return resultingState
-
 
     def update(self):
-        self.lastState = self.currentState
-        self.currentState = self.getState(self)
+        self.lastState=self.currentState
+        self.currentState=self.getState(self)
         self.stateHistory.append(self.currentState)
         self.posHistory.append(self.pos)
+        self.eligibilityTrace = [(s,a,self.memoryDecrease * v) for (s,a,v) in self.eligibilityTrace]
+        if self.lastAction != None: #at the start, there is no action to add in eligibility trace
+            self.eligibilityTrace.append((self.lastState,self.lastAction,1))
         self.exploreRate = self.alpha / (self.alpha + self.age)
         self.age = self.age + 1
         self.learningRate = self.learningRate * self.learningDecreaseRate
         reward = self.rewards(self.currentState)
         self.lastReward = reward
-        #Computing the maximum value neighbour   
-        maxValue = 0
-        for a in self.actions.keys():
-            neighbourState = self.checkWhatHappens(a)
-            try:
-                neighbouringReward =  max(value for key,value in self.Q[neighbourState].items())
-            except ValueError:
-                neighbouringReward = 0
-            except KeyError:
-                neighbouringReward = 0
-            if neighbouringReward > maxValue :
-                maxValue = neighbouringReward
-        if (self.currentState in self.Q.keys()):
-            if (self.lastAction in self.Q[self.currentState].keys()):
-                self.Q[self.currentState][self.lastAction] = self.Q[self.currentState][self.lastAction] * (1-self.learningRate) + self.learningRate * (reward + self.discountFactor * maxValue)
-            else:
-                self.Q[self.currentState][self.lastAction] = self.learningRate * (reward + self.discountFactor * maxValue)
-        else :
-            self.Q[self.currentState] = {self.lastAction : self.learningRate * (reward + self.discountFactor * maxValue)}
+        if reward == 0:
+            return
+        else:
+            for (s,a,v) in self.eligibilityTrace:
+                if s in self.Q.keys():
+                    if a in self.Q[s].keys():
+                        self.Q[s][a] = self.Q[s][a] * (1 - self.learningRate) + reward * v * self.learningRate
+                    else :
+                        self.Q[s][a] = reward * v * self.learningRate
+                else :
+                    self.Q[s]={a : reward * v * self.learningRate}
+
+
     def act(self) :
         self.lastAction = self.nextAction
         self.actions[self.nextAction](self)
