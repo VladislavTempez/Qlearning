@@ -37,6 +37,7 @@ def rewards(state):
 ################################################
 
 alpha = decreasePoint * runDuration / (1 - decreaseValue)
+print(alpha)
 def reset(pop,date):
     totalDistanceAtGoal = 0
     numFish = 0
@@ -66,8 +67,7 @@ pop = []
 averageDistanceSinceGoal=[]
 averageDistanceWhenReachingGoal=[]
 for i in range(popSize):
-    pop.append(Fish(idFish = newID(), ringSize = ringSize, rewards = rewards,
-        alpha = alpha))
+    pop.append(Fish(idFish = newID(), ringSize = ringSize, rewards = rewards, alpha = alpha))
 
 for f in pop :
     f.pos = pop.index(f) * math.ceil(ringSize / popSize) % f.ringSize
