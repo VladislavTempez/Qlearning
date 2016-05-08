@@ -37,7 +37,6 @@ def rewards(state):
 ################################################
 
 alpha = decreasePoint * runDuration / (1 - decreaseValue)
-print(alpha)
 def reset(pop,date):
     totalDistanceAtGoal = 0
     numFish = 0
