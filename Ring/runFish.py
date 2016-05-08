@@ -12,7 +12,7 @@ import time
 ################################################
 
 popSize = 5
-runDuration = 1000000
+runDuration = 1000
 ringSize = 85 
 reward = 10
 punition = -2
@@ -29,7 +29,7 @@ def rewards(state):
         return reward
     elif near < 2:
         return punition
-    elif leftNear+rightNear >= 3
+    elif leftNear+rightNear >= 3:
         return reward/10
     else :
         return 0

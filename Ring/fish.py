@@ -28,12 +28,12 @@ def getState(self):
     for fish in self.vision:
         if self.distance(fish) <= self.criticalSize:
             near = near + 1
-        elif : self.distance(fish) <= math.ceil((self.ringSize-2*self.criticalSize)/ 6)*2 + self.criticalSize:
+        elif self.distance(fish) <= math.ceil((self.ringSize-2*self.criticalSize)/ 6)*2 + self.criticalSize:
             if fish.pos - self.pos > self.ringSize / 2 : 
                 leftNear = leftNear + 1
             else :
                 rightNear = rightNear + 1
-        elif : self.distance(fish) <= math.ceil((self.ringSize-2*self.criticalSize)/ 6)*3 + self.criticalSize:
+        elif self.distance(fish) <= math.ceil((self.ringSize-2*self.criticalSize)/ 6)*3 + self.criticalSize:
             if fish.pos - self.pos > self.ringSize / 2 : 
                 leftFar = leftFar + 1
             else :
@@ -151,7 +151,7 @@ class Fish:
         idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
         timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
         title = title + '-' + timeNow + '-' + str(idFile)
-        logFile=open('./logs/Fish'+ title +'.json','w')
+        logFile=open('./logs/Fish/'+ title +'.json','w')
         logFile.write(logsJson)
         logFile.close()
         return
