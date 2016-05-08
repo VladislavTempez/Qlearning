@@ -157,7 +157,7 @@ class Fish:
         idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
         timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
         title = title + '-' + timeNow + '-' + str(idFile)
-        logFile=open('./logs/'+ title +'.json','w')
+        logFile=open('./logs/Fish/'+ title +'.json','w')
         logFile.write(logsJson)
         logFile.close()
         return
