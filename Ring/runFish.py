@@ -5,15 +5,16 @@
 from fish import *
 import math
 import time
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 ################################################
 #                 Parameters                   #
 ################################################
 
 popSize = 5
-runDuration = 1000
-ringSize = 85 
+learnersNumber = 1
+runDuration = 1000000
+ringSize = 13 
 reward = 10
 punition = -2
 previousKnowledge = {}
@@ -23,16 +24,6 @@ previousKnowledge = {}
 decreasePoint = 2 /3 # Fraction of the run at which exploreRate is decreaseValue
 decreaseValue = 3 / 1000
 
-def rewards(state):
-    near,leftNear,rightNear,leftFar,rightFar,far = state
-    if near >= 3:
-        return reward
-    elif near < 2:
-        return punition
-    elif leftNear+rightNear >= 3:
-        return reward/10
-    else :
-        return 0
 
 ################################################
 #                 Useful values                #
@@ -44,13 +35,16 @@ def reset(pop,date):
     totalDistanceAtGoal = 0
     numFish = 0
     for f in pop:
-        if f.lastReward>0:
-            totalDistanceAtGoal = totalDistanceAtGoal + f.moveStock
-            f.moveStock = 0
-            numFish = numFish + 1
-            f.eligibilityTrace.clear()
-            f.pos = pop.index(f) * math.ceil(ringSize / popSize) % f.ringSize
-            f.dateOfResetHistory.append(date)
+        if f.lastReward == reward :
+            if f.learning:
+                totalDistanceAtGoal = totalDistanceAtGoal + f.moveStock
+                f.moveStock = 0
+                numFish = numFish + 1
+                f.eligibilityTrace = {}
+                f.pos = random.randint(0,f.ringSize) % f.ringSize
+                if date > runDuration * 2 / 3:
+                    f.pos = math.ceil(pop.index(f) * ringSize / popSize) % f.ringSize
+            f.dateOfReward.append(date)
     return(totalDistanceAtGoal,numFish)
    
 def smoothCurve(curve,windowsSize):
@@ -66,21 +60,35 @@ def smoothCurve(curve,windowsSize):
 ################################################
 
 pop = []
-
+adults = []
+learners = []
 averageDistanceSinceGoal=[]
 averageDistanceWhenReachingGoal=[]
+
 for i in range(popSize):
-    pop.append(Fish(idFish = newID(), ringSize = ringSize, rewards = rewards,
-        alpha = alpha, criticalSize = 4))
+    adults.append(Fish(idFish = newID(),
+                       ringSize = ringSize,
+                       rewards = rewards(punition,reward,minSizeOfGroup = math.floor(popSize*0.9)),
+                       alpha = alpha,
+                       criticalSize = 1,
+                       learning = False))
+
+for i in range(learnersNumber):
+    learners.append(Fish(idFish =newID(),
+                        ringSize = ringSize,
+                        rewards = rewards(punition,reward, minSizeOfGroup = math.floor(popSize*0.9)),
+                        alpha = alpha,
+                        criticalSize = 1,
+                        learning = True))
+pop = adults + learners
 
 for f in pop :
     f.pos = pop.index(f) * math.ceil(ringSize / popSize) % f.ringSize
     f.vision = pop
+
+for f in pop:
     f.currentState = f.getState(f)
     f.posHistory.append(f.pos)
-    f.stateHistory.append(f.currentState)
-
-
 ################################################
 #            Main Loop                         #
 ################################################
@@ -89,27 +97,33 @@ for t in range(runDuration) :
     averageDistanceSinceGoal.append(0)
     averageDistanceWhenReachingGoal.append(0)
     for f in pop :
-        f.decide()
+        f.decide(f)
     for f in pop :
         f.act()
     for f in pop :
-        f.update()
+        f.update(f)
+
     totalDistanceAtGoal,numFish = reset(pop,t)
+
     if (numFish == 0):
         averageDistanceWhenReachingGoal[t] = -1
+
     else :
         averageDistanceWhenReachingGoal[t] = totalDistanceAtGoal / numFish
-    for f in pop:
+    for f in learners:
         averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] + f.moveStock
     averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / popSize
 
 ################################################
 #                 After Run process            #
 ################################################
-for f in pop:
+for f in learners:
     f.genLogs()
-
-date=time.time()
+timeOfReward = []
+for f in adults:
+    timeOfReward = f.dateOfReward + timeOfReward
+timeOfReward = list(set(timeOfReward))
+date = time.time()
 idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
 timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
 
@@ -130,7 +144,13 @@ logRun.write('averageWhenReachingGoal')
 logRun.write('\n')
 logRun.write(str(averageDistanceWhenReachingGoal))
 logRun.write('\n')
-
+logRun.write('timeOfReward')
+logRun.write(str(timeOfReward))
+logRun.write('\n')
 logRun.close()
-#plt.plot(averageDistanceWhenReachingGoal)
-#plt.show()
+plt.plot(averageDistanceWhenReachingGoal)
+plt.show()
+print(learners[0].Q)
+for f in pop:
+    plt.plot(f.posHistory)
+plt.show()
