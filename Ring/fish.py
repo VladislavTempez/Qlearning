@@ -23,9 +23,9 @@ def newID():
 def sectorInit(self) :
     #limits of sectors :
     lim1 = self.criticalSize + 1 #strict limit, lim1 in the first index to be outside sector 1
-    lim2 = 3 * self.criticalSize +1
-    lim3 = 6 * self.criticalSize +1
-    limInf=math.ceil(self.ringSize/2) + 1
+    lim2 = 3 * self.criticalSize + 1 + math.floor(self.ringSize / 5)
+    lim3 = 6 * self.criticalSize +1 + math.floor(self.ringSize /2)
+    limInf=math.ceil(self.ringSize/2) + 1  
     sectors = ['far' for i in range(self.ringSize)]
 #checking that the limits are not larger than the ring
     if lim1 > limInf :
@@ -83,13 +83,13 @@ def decideNoLearning(self):
     s=self.currentState
     maxSize=max(s) #detecting the larger group
     if maxSize == s[self.sectorList.index('near')]: #if it's optimal to not move, don't move
-        sectorToGo = 'near'
+        self.nextAction = random.choice(['left','right','dontMove'])
     else :
         sectorToGo=self.sectorList[s.index(maxSize)] #getting the sector in which the larger group is
-    if sectorToGo == 'far':
-        self.nextAction = random.choice(['left','right','dontMove'])
-    else:
-        self.nextAction = self.directions[sectorToGo]
+        if sectorToGo == 'far':
+            self.nextAction = random.choice(['left','right','dontMove'])
+        else:
+            self.nextAction = self.directions[sectorToGo]
 
 random.seed()
 

@@ -11,9 +11,9 @@ import time
 #                 Parameters                   #
 ################################################
 
-popSize = 5
+popSize = 100 
 learnersNumber = 1
-runDuration = 1000000
+runDuration = 1000
 ringSize = 13 
 reward = 10
 punition = -2
@@ -70,7 +70,7 @@ for i in range(popSize):
                        ringSize = ringSize,
                        rewards = rewards(punition,reward,minSizeOfGroup = math.floor(popSize*0.9)),
                        alpha = alpha,
-                       criticalSize = 1,
+                       criticalSize = 10,
                        learning = False))
 
 for i in range(learnersNumber):
@@ -78,7 +78,7 @@ for i in range(learnersNumber):
                         ringSize = ringSize,
                         rewards = rewards(punition,reward, minSizeOfGroup = math.floor(popSize*0.9)),
                         alpha = alpha,
-                        criticalSize = 1,
+                        criticalSize = 10,
                         learning = True))
 pop = adults + learners
 
@@ -120,7 +120,7 @@ for t in range(runDuration) :
 for f in learners:
     f.genLogs()
 timeOfReward = []
-for f in adults:
+for f in pop:
     timeOfReward = f.dateOfReward + timeOfReward
 timeOfReward = list(set(timeOfReward))
 date = time.time()
