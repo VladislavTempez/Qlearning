@@ -21,8 +21,11 @@ decreaseValue = float(decreaseValueLine[1])
 print(decreaseValue)
 averageDistanceSinceGoal = [float(d) for d in lines[6].replace('[','').replace(']','').split(',')]
 averageDistanceWhenReachingGoal = [float(d) for d in lines[8].replace('[','').replace(']','').split(',')]
+timeOfReward = [float(d) for d in lines[10].replace('[','').replace(']','').split(',')]
 
 plt.plot(averageDistanceWhenReachingGoal)
 plt.show()
 plt.plot(averageDistanceSinceGoal)
+plt.show()
+plt.plot(timeOfReward)
 plt.show()
