@@ -5,7 +5,7 @@
 from fish import *
 import math
 import time
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 ################################################
 #                 Parameters                   #
@@ -148,9 +148,8 @@ logRun.write('timeOfReward')
 logRun.write(str(timeOfReward))
 logRun.write('\n')
 logRun.close()
-plt.plot(averageDistanceWhenReachingGoal)
-plt.show()
-print(learners[0].Q)
-for f in pop:
-    plt.plot(f.posHistory)
-plt.show()
+#plt.plot(averageDistanceWhenReachingGoal)
+#plt.show()
+#for f in pop:
+#    plt.plot(f.posHistory)
+#plt.show()

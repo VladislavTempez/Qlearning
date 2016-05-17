@@ -222,6 +222,7 @@ class Fish:
         logs['age'] = self.age
         logs['Q'] = [{str(k):v} for k,v in self.Q.items()] 
         logs['dateOfReward'] = self.dateOfReward
+        logs['position'] = self.posHistory
         logsJson = json.dumps(logs)
         title='Fish'+str(self.idFish)
         date = time.time()
