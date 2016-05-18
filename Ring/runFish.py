@@ -5,17 +5,19 @@
 from fish import *
 import math
 import time
+import pickle
 #import matplotlib.pyplot as plt
 
 ################################################
 #                 Parameters                   #
 ################################################
 
-popSize = 100 
+popSize = 10 
 learnersNumber = 1
+adultsNumber = popSize - learnersNumber
 runDuration = 1000
-ringSize = 13 
-reward = 10
+ringSize = 37 
+reward = 100
 punition = -2
 previousKnowledge = {}
 
@@ -31,20 +33,22 @@ decreaseValue = 3 / 1000
 
 alpha = decreaseValue * runDuration / (1 - decreaseValue)
 
-def reset(pop,date):
+def reset(pop,date,cycleLength):
+
     totalDistanceAtGoal = 0
     numFish = 0
+    if date % cycleLength == 0:
+        random.shuffle(pop)
+        for f in pop:
+            f.eligibility={}
+            f.pos = math.ceil( pop.index(f) * f.ringSize / len(pop) ) % f.ringSize
     for f in pop:
         if f.lastReward == reward :
             if f.learning:
                 totalDistanceAtGoal = totalDistanceAtGoal + f.moveStock
                 f.moveStock = 0
                 numFish = numFish + 1
-                f.eligibilityTrace = {}
-                f.pos = random.randint(0,f.ringSize) % f.ringSize
-                if date > runDuration * 2 / 3:
-                    f.pos = math.ceil(pop.index(f) * ringSize / popSize) % f.ringSize
-            f.dateOfReward.append(date)
+                f.dateOfReward.append(date)
     return(totalDistanceAtGoal,numFish)
    
 def smoothCurve(curve,windowsSize):
@@ -55,6 +59,7 @@ def smoothCurve(curve,windowsSize):
             res[j] = res[j] + curve[i+j]
         res[j] =res[j] / windowsSize
     return res
+
 ################################################
 #            Variables Initialization          #
 ################################################
@@ -63,22 +68,21 @@ pop = []
 adults = []
 learners = []
 averageDistanceSinceGoal=[]
-averageDistanceWhenReachingGoal=[]
 
-for i in range(popSize):
+for i in range(adultsNumber):
     adults.append(Fish(idFish = newID(),
                        ringSize = ringSize,
-                       rewards = rewards(punition,reward,minSizeOfGroup = math.floor(popSize*0.9)),
+                       rewards = rewards(punition,reward,minSizeOfGroup = math.floor(adultsNumber * 0.9)),
                        alpha = alpha,
-                       criticalSize = 10,
+                       criticalSize = 1,
                        learning = False))
 
 for i in range(learnersNumber):
     learners.append(Fish(idFish =newID(),
                         ringSize = ringSize,
-                        rewards = rewards(punition,reward, minSizeOfGroup = math.floor(popSize*0.9)),
+                        rewards = rewards(punition,reward, minSizeOfGroup = math.floor(adultsNumber * 0.9)),
                         alpha = alpha,
-                        criticalSize = 10,
+                        criticalSize = 1,
                         learning = True))
 pop = adults + learners
 
@@ -95,7 +99,6 @@ for f in pop:
 
 for t in range(runDuration) :
     averageDistanceSinceGoal.append(0)
-    averageDistanceWhenReachingGoal.append(0)
     for f in pop :
         f.decide(f)
     for f in pop :
@@ -103,16 +106,11 @@ for t in range(runDuration) :
     for f in pop :
         f.update(f)
 
-    totalDistanceAtGoal,numFish = reset(pop,t)
+    totalDistanceAtGoal,numFish = reset(pop,t,ringSize*5)
 
-    if (numFish == 0):
-        averageDistanceWhenReachingGoal[t] = -1
-
-    else :
-        averageDistanceWhenReachingGoal[t] = totalDistanceAtGoal / numFish
     for f in learners:
         averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] + f.moveStock
-    averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / popSize
+    averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / learnersNumber 
 
 ################################################
 #                 After Run process            #
@@ -120,37 +118,27 @@ for t in range(runDuration) :
 for f in learners:
     f.genLogs()
 timeOfReward = []
-for f in pop:
+for f in learners:
     timeOfReward = f.dateOfReward + timeOfReward
 timeOfReward = list(set(timeOfReward))
 date = time.time()
 idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
 timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
 
-logRun=open('logs/logRunD:'+str(runDuration)+'P:'+str(popSize)+'S:'+str(ringSize)+'-'+timeNow+'-'+str(idFile),'w')
+logRun=open('logs/logRunD:'+str(runDuration)+'P:'+str(popSize)+'S:'+str(ringSize)+'-'+timeNow+'-'+str(idFile),'wb')
+infos='runDuration:' + str(runDuration) + '\n'
+infos = infos +'popSize:' + str(popSize) + '\n' 
+infos = infos + 'ringSize:' + str(ringSize) + '\n' 
+infos= infos + 'decreasePoint:' + str(decreasePoint) + '\n'
+infos = infos +'decreaseValue:' + str(decreaseValue) + '\n'
 
-logRun.write('runDuration: ' + str(runDuration) + '\n')
-logRun.write('popSize: ' + str(popSize) + '\n')
-logRun.write('ringSize: ' + str(ringSize) + '\n')
-logRun.write('decreasePoint: ' + str(decreasePoint) + '\n')
-logRun.write('decreaseValue: ' + str(decreaseValue) + '\n')
-
-logRun.write('averageDistanceSinceGoal')
-logRun.write('\n')
-logRun.write(str(averageDistanceSinceGoal))
-logRun.write('\n')
-
-logRun.write('averageWhenReachingGoal')
-logRun.write('\n')
-logRun.write(str(averageDistanceWhenReachingGoal))
-logRun.write('\n')
-logRun.write('timeOfReward')
-logRun.write('\n')
-logRun.write(str(timeOfReward))
-logRun.write('\n')
+pickle.dump(infos,logRun)
+pickle.dump(averageDistanceSinceGoal,logRun)
+pickle.dump(timeOfReward,logRun)
+for f in pop:
+    pickle.dump(f.posHistory,logRun)
 logRun.close()
-#plt.plot(averageDistanceWhenReachingGoal)
-#plt.show()
+
 #for f in pop:
 #    plt.plot(f.posHistory)
 #plt.show()

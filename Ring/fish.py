@@ -5,7 +5,7 @@
 import math
 import random
 import time
-import json
+import pickle 
 
 ################################################
 #                 Useful values                #
@@ -83,7 +83,7 @@ def decideNoLearning(self):
     s=self.currentState
     maxSize=max(s) #detecting the larger group
     if maxSize == s[self.sectorList.index('near')]: #if it's optimal to not move, don't move
-        self.nextAction = random.choice(['left','right','dontMove'])
+        self.nextAction = random.choice(['dontMove'])
     else :
         sectorToGo=self.sectorList[s.index(maxSize)] #getting the sector in which the larger group is
         if sectorToGo == 'far':
@@ -218,19 +218,19 @@ class Fish:
         self.nextAction = None
 
     def genLogs(self):
-        logs = {}
-        logs['age'] = self.age
-        logs['Q'] = [{str(k):v} for k,v in self.Q.items()] 
-        logs['dateOfReward'] = self.dateOfReward
-        logs['position'] = self.posHistory
-        logsJson = json.dumps(logs)
         title='Fish'+str(self.idFish)
         date = time.time()
+        #unique file number
         idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
-        timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
+        timeNow = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
         title = title + '-' + timeNow + '-' + str(idFile)
-        logFile=open('./logs/Fish/'+ title +'.json','w')
-        logFile.write(logsJson)
+        logFile=open('./logs/Fish/'+ title +'.log','wb')
+        infos = '' 
+        infos = infos + 'age:' + str(self.age) + '\n'
+        pickle.dump(infos,logFile)
+        pickle.dump(self.Q,logFile)
+        pickle.dump(self.posHistory,logFile)
+        pickle.dump(self.dateOfReward,logFile)
         logFile.close()
         return
 
