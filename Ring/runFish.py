@@ -125,7 +125,7 @@ date = time.time()
 idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
 timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
 
-logRun=open('logs/logRunD:'+str(runDuration)+'P:'+str(popSize)+'S:'+str(ringSize)+'-'+timeNow+'-'+str(idFile),'wb')
+logRun=open('logs/logRunD:'+str(math.log10(runDuration))+'P:'+str(popSize)+'S:'+str(ringSize)+'-'+timeNow+'-'+str(idFile),'wb')
 infos='runDuration:' + str(runDuration) + '\n'
 infos = infos +'popSize:' + str(popSize) + '\n' 
 infos = infos + 'ringSize:' + str(ringSize) + '\n' 
