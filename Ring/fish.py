@@ -97,6 +97,8 @@ def updateLearning(self):
     self.lastState = self.currentState
     self.currentState = self.getState(self)
     self.posHistory.append(self.pos)
+    self.timeSinceReward = self.timeSinceReward + 1
+    #updating eliginility trace
     if self.lastState in self.eligibilityTrace.keys():
         if self.lastAction in self.eligibilityTrace[self.lastState].keys():
             self.eligibilityTrace[self.lastState][self.lastAction] = self.eligibilityTrace[self.lastState][self.lastAction] + self.discountFactor**(-self.timeSinceReward)
@@ -104,11 +106,14 @@ def updateLearning(self):
             self.eligibilityTrace[self.lastState][self.lastAction] = self.discountFactor ** (- self.timeSinceReward)
     else :
         self.eligibilityTrace[self.lastState] = {self.lastAction : self.discountFactor ** (-self.timeSinceReward)}
+
     self.exploreRate = self.alpha / (self.alpha + self.age)
     self.age = self.age + 1
-    self.learningRate = self.alpha /(self.alpha +self.age)
+    self.learningRate = self.alpha  / (self.alpha +self.age)
     reward = self.rewards(self)
     self.lastReward = reward
+    
+    #updating Q
     if reward == 0:
         return
     else:
@@ -125,9 +130,8 @@ def updateLearning(self):
         self.timeSinceReward = 0
 
 def updateNoLearning(self):
-    self.lastState=self.currentState
-    self.currentState=self.getState(self)
-    reward=self.rewards(self)
+    self.lastState = self.currentState
+    self.currentState = self.getState(self)
     self.posHistory.append(self.pos)
     self.age = self.age + 1
 
@@ -155,8 +159,8 @@ class Fish:
                 exploreRate = 1,
                 criticalSize = 2,
                 learningDecreaseRate = 0.9,
-                alpha = 10**100,
-                learning = False,
+                alpha = 10**20,
+                learning = True,
                 getState = getState,
                 decide = decideLearning,
                 update = updateLearning,
@@ -207,7 +211,7 @@ class Fish:
             return
         def dontMove(self):
             return
-        self.actions={'left' : goLeft,'right' : goRight, 'dontMove' :dontMove}
+        self.actions={'left' : goLeft,'right' : goRight, 'dontMove' : dontMove}
 
     def distance(self,fish):
         return min((self.pos - fish. pos) % self.ringSize ,(fish.pos - self. pos) % self.ringSize)
@@ -227,10 +231,10 @@ class Fish:
         logFile=open('./logs/Fish/'+ title +'.log','wb')
         infos = '' 
         infos = infos + 'age:' + str(self.age) + '\n'
-        pickle.dump(infos,logFile)
-        pickle.dump(self.Q,logFile)
-        pickle.dump(self.posHistory,logFile)
-        pickle.dump(self.dateOfReward,logFile)
+        pickle.dump(infos,logFile,2)
+        pickle.dump(self.Q,logFile,2)
+        pickle.dump(self.posHistory,logFile,2)
+        pickle.dump(self.dateOfReward,logFile,2)
         logFile.close()
         return
 
