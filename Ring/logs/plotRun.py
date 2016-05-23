@@ -72,5 +72,5 @@ for f in range(popSize-learnersNumber):
     plt.plot(posHistoryA[f][ runDuration - maxPlot : runDuration - 1],color='g')
 for f in range(learnersNumber):
     plt.plot(posHistoryL[f][runDuration - maxPlot : runDuration - 1],'ro',color='r')
-plt.title('position of fishes')
+plt.title('position of fishes (learners in red)')
 plt.show()
