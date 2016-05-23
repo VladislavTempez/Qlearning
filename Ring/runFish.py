@@ -23,8 +23,8 @@ previousKnowledge = {}
 
 #Setting the explore rate evolution. alpha / (alpha + n). 
 
-decreasePoint = 2 /3 # Fraction of the run at which exploreRate is decreaseValue
-decreaseValue = 3 / 1000
+decreasePoint = 1 /3 # Fraction of the run at which exploreRate is decreaseValue
+decreaseValue = 5 / 10
 
 
 ################################################
@@ -55,13 +55,33 @@ def reset(pop,date,cycleLength,stack):
             f.pos = math.ceil( pop.index(f) * f.ringSize / len(pop) ) % f.ringSize
     return(stack,meanStack)
    
-def smoothCurve(curve,windowsSize):
+def smoothCurve(curve,windowsSize = -1):
+    if windowsSize == -1:
+        windowsSize = math.ceil(len(curve) /100)
     res=[]
-    for j in range(len(curve)-windowsSize):
+    for j in range(math.ceil(len(curve)/windowsSize)):
         res.append(0)
         for i in range(windowsSize):
-            res[j] = res[j] + curve[i+j]
+            res[j] = res[j] + curve[i+j * windowsSize]
         res[j] =res[j] / windowsSize
+    return res
+
+def smoothSparseCurve(curve,windowsSize=-1):
+    if windowsSize == -1:
+        windowsSize = math.ceil(len(curve) /100)
+    res=[]
+    for j in range(math.floor(len(curve)/windowsSize)):
+        res.append(0)
+        numberOfPoint =0
+        for i in range(windowsSize):
+            p=curve[i+j * windowsSize]
+            if p != 0:
+                res[j] = res[j] + p
+                numberOfPoint = numberOfPoint + 1
+        if numberOfPoint == 0:
+            res[j]=res[j-1]
+        else :
+            res[j] =res[j] / numberOfPoint
     return res
 
 ################################################
@@ -72,11 +92,10 @@ pop = []
 adults = []
 learners = []
 averageDistanceSinceGoal=[]
-
 for i in range(adultsNumber):
     adults.append(Fish(idFish = newID(),
                        ringSize = ringSize,
-                       rewards = rewards(punition,reward,minSizeOfGroup = math.floor(adultsNumber * 0.9)),
+                       rewards = rewards(punition,reward,minSizeOfGroup = math.floor(adultsNumber * 0.8)),
                        alpha = alpha,
                        criticalSize = 1,
                        learning = False))
@@ -84,7 +103,7 @@ for i in range(adultsNumber):
 for i in range(learnersNumber):
     learners.append(Fish(idFish = newID(),
                         ringSize = ringSize,
-                        rewards = rewards(punition,reward, minSizeOfGroup = math.floor(adultsNumber * 0.9)),
+                        rewards = rewards(punition,reward, minSizeOfGroup = math.floor(adultsNumber * 0.8)),
                         alpha = alpha,
                         criticalSize = 1,
                         learning = True))
@@ -116,6 +135,7 @@ for t in range(runDuration) :
     if meanStack != None:
         stackHistory.append(meanStack)
     for f in learners:
+        exploreRate.append(f.exploreRate)
         averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] + f.moveStock
     averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / learnersNumber 
 
@@ -151,7 +171,7 @@ logRun.close()
 #plt.plot(smoothCurve(stackHistory,50))
 #plt.show()
 #for f in adults:
-#    plt.plot(f.posHistory)
+#    plt.plot(f.posHistory,'-')
 #for f in learners:
 #    plt.plot(f.posHistory,'ro')
 #plt.show()

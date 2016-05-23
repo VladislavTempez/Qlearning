@@ -1,14 +1,34 @@
 import matplotlib.pyplot as plt
+import math
 import pickle
 from sys import argv
 
-def smoothCurve(curve,windowsSize):
+def smoothCurve(curve,windowsSize = -1):
+    if windowsSize == -1:
+        windowsSize = math.ceil(len(curve) /100)
     res=[]
-    for j in range(len(curve)-windowsSize):
+    for j in range(math.ceil(len(curve)/windowsSize)):
         res.append(0)
         for i in range(windowsSize):
-            res[j] = res[j] + curve[i+j]
+            res[j] = res[j] + curve[i+j * windowsSize]
         res[j] =res[j] / windowsSize
+    return res
+def smoothSparseCurve(curve,windowsSize=-1):
+    if windowsSize == -1:
+        windowsSize = math.ceil(len(curve) /100)
+    res=[]
+    for j in range(math.floor(len(curve)/windowsSize)):
+        res.append(0)
+        numberOfPoint =0
+        for i in range(windowsSize):
+            p=curve[i+j * windowsSize]
+            if p != 0:
+                res[j] = res[j] + p
+                numberOfPoint = numberOfPoint + 1
+        if numberOfPoint == 0:
+            res[j]=res[j-1]
+        else :
+            res[j] =res[j] / numberOfPoint
     return res
 
 script, filename = argv
@@ -30,26 +50,27 @@ decreaseValue = float(infos[4].split(':')[1])
 print(decreaseValue)
 learnersNumber = int(infos[5].split(':')[1])
 print(learnersNumber)
-posHistory=[]
-maxPlot=min(runDuration,500)
-for f in range(popSize):
-    posHistory.append(pickle.load(logFile))
+posHistoryA=[]
+posHistoryL=[]
+maxPlot=min(runDuration,2000)
+for f in range(popSize-learnersNumber):
+    posHistoryA.append(pickle.load(logFile))
+for f in range(learnersNumber):
+    posHistoryL.append(pickle.load(logFile))
 logFile.close()
-plt.plot(smoothCurve(timeOfReward,100))
+plt.plot(smoothCurve(timeOfReward))
 plt.title('average number of rewards')
 plt.show()
-plt.plot(stackHistory)
+plt.plot(smoothSparseCurve(stackHistory))
 plt.title('average date of joinging the group')
 plt.show()
-plt.plot([averageDistanceSinceGoal[runDuration - maxPlot + i] for i in range(0,maxPlot)])
+plt.plot(smoothCurve(averageDistanceSinceGoal))
 plt.title('average distance since goal')
 plt.show()
 subHist=[]
 for f in range(popSize-learnersNumber):
-    subHist.append([posHistory[f][runDuration - maxPlot + i] for i in range(0,maxPlot)])
-    plt.plot(subHist[f])
+    plt.plot(posHistoryA[f][ runDuration - maxPlot : runDuration - 1],color='g')
 for f in range(learnersNumber):
-    subHist.append([posHistory[popSize - f - 1][runDuration - maxPlot + i] for i in range(0,maxPlot)])
-    plt.plot(subHist[f],'ro')
+    plt.plot(posHistoryL[f][runDuration - maxPlot : runDuration - 1],'ro',color='r')
 plt.title('position of fishes')
 plt.show()
