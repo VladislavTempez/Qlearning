@@ -31,7 +31,7 @@ decreaseValue = 5 / 10
 #                 Useful values                #
 ################################################
 
-alpha = decreaseValue * runDuration / (1 - decreaseValue)
+alpha = decreaseValue * runDuration * decreasePoint / (1 - decreaseValue)
 
 def reset(pop,date,cycleLength,stack):
     meanStack = None
