@@ -126,6 +126,9 @@ def updateLearning(self):
                         self.Q[state][action] = reward * value * self.discountFactor ** (self.timeSinceReward) * self.learningRate
                 else :
                     self.Q[state] = {action : reward * value * self.discountFactor ** (self.timeSinceReward) * self.learningRate}
+        if reward > 0:
+            self.moveStock = 0
+            self.dateOfReward.append(self.age)
         self.eligibilityTrace = {}
         self.timeSinceReward = 0
 

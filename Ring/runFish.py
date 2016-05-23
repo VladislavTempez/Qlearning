@@ -15,8 +15,8 @@ import pickle
 popSize = 10 
 learnersNumber = 1
 adultsNumber = popSize - learnersNumber
-runDuration = 1*10**(3) 
-ringSize = 83 
+runDuration = 1*10**(4) 
+ringSize = 13 
 reward = 100
 punition = -2 
 previousKnowledge = {}
@@ -38,9 +38,7 @@ def reset(pop,date,cycleLength,stack):
     for f in learners:
         if f.lastReward == reward :
             if stack[learners.index(f)] == 0:
-                stack[learners.index(f)] = date % cycleLength 
-            f.moveStock = 0
-            f.dateOfReward.append(date)
+                stack[learners.index(f)] = (date % cycleLength)
     if date % cycleLength == 0:
         sumStack = sum([i for i in stack if i != 0 ])
         countNonZeroStack = sum([1 for i in stack if i!= 0])
@@ -51,7 +49,9 @@ def reset(pop,date,cycleLength,stack):
         random.shuffle(pop)
         stack = [0 for i in range(learnersNumber)]
         for f in pop:
+            f.moveStock = 0
             f.eligibility = {}
+            f.timeSinceReward = 0
             f.pos = math.ceil( pop.index(f) * f.ringSize / len(pop) ) % f.ringSize
     return(stack,meanStack)
    
