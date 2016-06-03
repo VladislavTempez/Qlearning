@@ -15,8 +15,8 @@ import pickle
 popSize = 10 
 learnersNumber = 1
 adultsNumber = popSize - learnersNumber
-runDuration = 5*10**(5) 
-ringSize = 13 
+runDuration = 1*10**(4) 
+ringSize = 53 
 reward = 100
 punition = -2 
 previousKnowledge = {}
@@ -48,6 +48,7 @@ def reset(pop,date,cycleLength):
         f.timeSinceReward = 0
         f.joinGroupDate = cycleLength
         f.timeInGroup = 0
+        f.reachGroup = False
         f.pos = math.ceil( pop.index(f) * f.ringSize / len(pop) ) % f.ringSize
     return
    

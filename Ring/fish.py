@@ -86,6 +86,7 @@ def decideNoLearning(self):
         self.nextAction = random.choice(['dontMove'])
         self.reachGroup = True
     else :
+        self.reachGroup = False 
         sectorToGo=self.sectorList[s.index(maxSize)] #getting the sector in which the larger group is
         if sectorToGo == 'far':
             self.nextAction = random.choice(['left','right','dontMove'])
