@@ -33,36 +33,52 @@ def smoothSparseCurve(curve,windowsSize=-1):
 
 script, filename = argv
 logFile = open(filename,'rb')
+
 infos = pickle.load(logFile)
+
 averageDistanceSinceGoal = pickle.load(logFile)
 timeOfReward = pickle.load(logFile)
-stackHistory = pickle.load(logFile)
+
+joinGroupDateLearnersHist = pickle.load(logFile)
+timeInGroupLearnersHist = pickle.load(logFile)
+joinGroupDateAdultsHist = pickle.load(logFile)
+timeInGroupAdultsHist = pickle.load(logFile)
+
 infos = infos.split('\n')
 runDuration = int(infos[0].split(':')[1])
-print(runDuration)
+print('Run Duration :',runDuration)
 popSize = int(infos[1].split(':')[1])
-print(popSize)
-ringSize = float(infos[2].split(':')[1])
-print(ringSize)
-decreasePoint = float(infos[3].split(':')[1])
-print(decreasePoint)
-decreaseValue = float(infos[4].split(':')[1])
-print(decreaseValue)
+print('Population Size :',popSize)
 learnersNumber = int(infos[5].split(':')[1])
-print(learnersNumber)
+print('Learners :',learnersNumber)
+adultsNumber = popSize-learnersNumber
+print('Adults :',adultsNumber)
+ringSize = float(infos[2].split(':')[1])
+print('Ring Size :',ringSize)
+decreasePoint = float(infos[3].split(':')[1])
+decreaseValue = float(infos[4].split(':')[1])
+print('At ',decreasePoint,' of the run, learning rate is ',decreaseValue)
 posHistoryA=[]
 posHistoryL=[]
 maxPlot=min(runDuration,2000)
-for f in range(popSize-learnersNumber):
+for f in range(adultsNumber):
     posHistoryA.append(pickle.load(logFile))
 for f in range(learnersNumber):
     posHistoryL.append(pickle.load(logFile))
 logFile.close()
+
 plt.plot(smoothCurve(timeOfReward))
 plt.title('average number of rewards')
 plt.show()
-plt.plot(smoothSparseCurve(stackHistory))
-plt.title('average date of joinging the group')
+for i in range(learnersNumber):
+    plt.plot(smoothSparseCurve([t[i] for t in joinGroupDateLearnersHist]),color = 'r')
+plt.plot(smoothSparseCurve([max(t[i] for i in range(adultsNumber)) for t in joinGroupDateAdultsHist]),color = 'b')
+plt.title('date of joinging the group, in red for learners and in blue for last of non learners')
+plt.show()
+for i in range(learnersNumber):
+    plt.plot(smoothSparseCurve([t[i] for t in timeInGroupLearnersHist]),color = 'r')
+plt.plot(smoothSparseCurve([min(t[i] for i in range(adultsNumber)) for t in timeInGroupAdultsHist]),color = 'b')
+plt.title('time in the group, in red for learners and in blue for min in non learners')
 plt.show()
 plt.plot(smoothCurve(averageDistanceSinceGoal))
 plt.title('average distance since goal')

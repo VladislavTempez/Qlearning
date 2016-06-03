@@ -84,6 +84,7 @@ def decideNoLearning(self):
     maxSize=max(s) #detecting the larger group
     if maxSize == s[self.sectorList.index('near')]: #if it's optimal to not move, don't move
         self.nextAction = random.choice(['dontMove'])
+        self.reachGroup = True
     else :
         sectorToGo=self.sectorList[s.index(maxSize)] #getting the sector in which the larger group is
         if sectorToGo == 'far':
@@ -199,6 +200,9 @@ class Fish:
         self.timeSinceReward = 0
         self.moveStock = 0
         self.learning = learning
+        self.joinGroupDate = 0 
+        self.reachGroup = False
+        self.timeInGroup = 0
         if not self.learning:
             self.update = updateNoLearning
             self.decide = decideNoLearning

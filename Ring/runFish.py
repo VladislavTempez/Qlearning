@@ -15,7 +15,7 @@ import pickle
 popSize = 10 
 learnersNumber = 1
 adultsNumber = popSize - learnersNumber
-runDuration = 1*10**(4) 
+runDuration = 5*10**(5) 
 ringSize = 13 
 reward = 100
 punition = -2 
@@ -30,30 +30,26 @@ decreaseValue = 5 / 10
 ################################################
 #                 Useful values                #
 ################################################
-
 alpha = decreaseValue * runDuration * decreasePoint / (1 - decreaseValue)
+cycleLength = 5*ringSize
+def popUpdate(pop,date,cycleLength):
+    for f in pop:
+        if f.reachGroup  or f.lastReward == reward:
+            f.timeInGroup = f.timeInGroup + 1
+            if f.joinGroupDate == cycleLength:
+                f.joinGroupDate = date % cycleLength 
+    return
 
-def reset(pop,date,cycleLength,stack):
-    meanStack = None
-    for f in learners:
-        if f.lastReward == reward :
-            if stack[learners.index(f)] == 0:
-                stack[learners.index(f)] = (date % cycleLength)
-    if date % cycleLength == 0:
-        sumStack = sum([i for i in stack if i != 0 ])
-        countNonZeroStack = sum([1 for i in stack if i!= 0])
-        if countNonZeroStack == 0:
-            meanStack = cycleLength
-        else:
-            meanStack = sumStack / countNonZeroStack
-        random.shuffle(pop)
-        stack = [0 for i in range(learnersNumber)]
-        for f in pop:
-            f.moveStock = 0
-            f.eligibility = {}
-            f.timeSinceReward = 0
-            f.pos = math.ceil( pop.index(f) * f.ringSize / len(pop) ) % f.ringSize
-    return(stack,meanStack)
+def reset(pop,date,cycleLength):
+    random.shuffle(pop)
+    for f in pop:
+        f.moveStock = 0
+        f.eligibility = {}
+        f.timeSinceReward = 0
+        f.joinGroupDate = cycleLength
+        f.timeInGroup = 0
+        f.pos = math.ceil( pop.index(f) * f.ringSize / len(pop) ) % f.ringSize
+    return
    
 def smoothCurve(curve,windowsSize = -1):
     if windowsSize == -1:
@@ -91,7 +87,11 @@ def smoothSparseCurve(curve,windowsSize=-1):
 pop = []
 adults = []
 learners = []
-averageDistanceSinceGoal=[]
+averageDistanceSinceGoal = []
+joinGroupDateLearnersHist = []
+timeInGroupLearnersHist = []
+joinGroupDateAdultsHist = []
+timeInGroupAdultsHist = []
 for i in range(adultsNumber):
     adults.append(Fish(idFish = newID(),
                        ringSize = ringSize,
@@ -116,8 +116,7 @@ for f in pop :
 for f in pop:
     f.currentState = f.getState(f)
     f.posHistory.append(f.pos)
-stack = [0 for i in range(learnersNumber)]
-stackHistory = []
+
 ################################################
 #            Main Loop                         #
 ################################################
@@ -130,12 +129,14 @@ for t in range(runDuration) :
         f.act()
     for f in pop :
         f.update(f)
-
-    stack,meanStack = reset(pop,t,ringSize*5,stack)
-    if meanStack != None:
-        stackHistory.append(meanStack)
+    popUpdate(pop,t,cycleLength)
+    if t % cycleLength == 0:
+        joinGroupDateLearnersHist.append([f.joinGroupDate for f in learners])
+        timeInGroupLearnersHist.append([f.timeInGroup for f in learners])
+        joinGroupDateAdultsHist.append([f.joinGroupDate for f in adults])
+        timeInGroupAdultsHist.append([f.timeInGroup for f in adults])
+        reset(pop,t,cycleLength)
     for f in learners:
-        exploreRate.append(f.exploreRate)
         averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] + f.moveStock
     averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / learnersNumber 
 
@@ -162,7 +163,10 @@ infos = infos + 'learnersNumber:' + str(learnersNumber) + '\n'
 pickle.dump(infos,logRun,2)
 pickle.dump(averageDistanceSinceGoal,logRun,2)
 pickle.dump(timeOfReward,logRun,2)
-pickle.dump(stackHistory,logRun,2)
+pickle.dump(joinGroupDateLearnersHist,logRun,2)
+pickle.dump(timeInGroupLearnersHist,logRun,2)
+pickle.dump(joinGroupDateAdultsHist,logRun,2)
+pickle.dump(timeInGroupAdultsHist,logRun,2)
 for f in adults:
     pickle.dump(f.posHistory,logRun,2)
 for f in learners:
