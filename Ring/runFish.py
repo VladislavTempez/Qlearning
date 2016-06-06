@@ -100,7 +100,7 @@ joinGroupDateLearnersHist = []
 timeInGroupLearnersHist = []
 joinGroupDateAdultsHist = []
 timeInGroupAdultsHist = []
-%initialKnowledge = getKnowledgeFromFish()
+#initialKnowledge = getKnowledgeFromFish()
 for i in range(adultsNumber):
     adults.append(Fish(idFish = newID(),
                        ringSize = ringSize,
