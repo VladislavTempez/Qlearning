@@ -154,7 +154,7 @@ for t in range(runDuration) :
 ################################################
 timeOfReward = []
 for i in range(runDuration):
-    timeOfReward.append(O)
+    timeOfReward.append(0)
     for f in learners:
         if i in f.dateOfReward:
             timeOfReward[i] = timeOfReward[i] + 1
