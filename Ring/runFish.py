@@ -80,6 +80,13 @@ def smoothSparseCurve(curve,windowsSize=-1):
         else :
             res[j] =res[j] / numberOfPoint
     return res
+def getKnowledgeFromFish(FishName):
+    fish = open(FishName,'rb')
+    infos = pickle.load(fish)
+    Q = pickle.load(fish)
+    posHistory = pickle.load(fish)
+    fish.close()
+    return Q
 
 ################################################
 #            Variables Initialization          #
@@ -93,6 +100,7 @@ joinGroupDateLearnersHist = []
 timeInGroupLearnersHist = []
 joinGroupDateAdultsHist = []
 timeInGroupAdultsHist = []
+initialKnowledge = get KnowledgeFromFish()
 for i in range(adultsNumber):
     adults.append(Fish(idFish = newID(),
                        ringSize = ringSize,
@@ -144,15 +152,18 @@ for t in range(runDuration) :
 ################################################
 #                 After Run process            #
 ################################################
-for f in learners:
-    f.genLogs()
 timeOfReward = []
-for f in learners:
-    timeOfReward = f.dateOfReward + timeOfReward
-timeOfReward = [timeOfReward.count(i) for i in range(runDuration)]
+for i in range(runDuration):
+    timeOfReward.append(O)
+    for f in learners:
+        if i in f.dateOfReward:
+            timeOfReward[i] = timeOfReward[i] + 1
 date = time.time()
 idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
 timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
+
+for f in learners:
+    f.genLogs(idFile,timeNow)
 
 logRun=open('logs/logRunD:'+str(math.log10(runDuration))+'P:'+str(popSize)+'S:'+str(ringSize)+'-'+timeNow+'-'+str(idFile),'wb')
 infos='runDuration:' + str(runDuration) + '\n'

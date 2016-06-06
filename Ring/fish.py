@@ -229,12 +229,8 @@ class Fish:
         self.actions[self.nextAction](self)
         self.nextAction = None
 
-    def genLogs(self):
+    def genLogs(self,idFile,timeNow):
         title='Fish'+str(self.idFish)
-        date = time.time()
-        #unique file number
-        idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
-        timeNow = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
         title = title + '-' + timeNow + '-' + str(idFile)
         logFile=open('./logs/Fish/'+ title +'.log','wb')
         infos = '' 
