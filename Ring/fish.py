@@ -95,7 +95,7 @@ def decideNoLearning(self):
 
 random.seed()
 
-def updateLearning(self):
+def updateLearning(self,date):
     self.lastState = self.currentState
     self.currentState = self.getState(self)
     self.posHistory.append(self.pos)
@@ -111,7 +111,7 @@ def updateLearning(self):
 
     self.exploreRate = self.alpha / (self.alpha + self.age)
     self.age = self.age + 1
-    self.learningRate = self.alpha  / (self.alpha +self.age)
+    self.learningRate = self.alpha  / (self.alpha + self.age)
     reward = self.rewards(self)
     self.lastReward = reward
     
@@ -129,12 +129,11 @@ def updateLearning(self):
                 else :
                     self.Q[state] = {action : reward * value * self.discountFactor ** (self.timeSinceReward) * self.learningRate}
         if reward > 0:
-            self.moveStock = 0
-            self.dateOfReward.append(self.age)
+            self.dateOfReward.append(date)
         self.eligibilityTrace = {}
         self.timeSinceReward = 0
 
-def updateNoLearning(self):
+def updateNoLearning(self,date):
     self.lastState = self.currentState
     self.currentState = self.getState(self)
     self.posHistory.append(self.pos)
