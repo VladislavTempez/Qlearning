@@ -23,8 +23,8 @@ def newID():
 def sectorInit(self) :
     #limits of sectors :
     lim1 = self.criticalSize + 1 #strict limit, lim1 in the first index to be outside sector 1
-    lim2 = 3 * self.criticalSize + 1 + math.floor(self.ringSize / 5)
-    lim3 = 6 * self.criticalSize +1 + math.floor(self.ringSize /2)
+    lim2 = 3 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/5)
+    lim3 = 5 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/5)
     limInf=math.ceil(self.ringSize/2) + 1  
     sectors = ['far' for i in range(self.ringSize)]
 #checking that the limits are not larger than the ring
@@ -111,7 +111,7 @@ def updateLearning(self,date):
 
     self.exploreRate = self.alpha / (self.alpha + self.age)
     self.age = self.age + 1
-    self.learningRate = self.alpha  / (self.alpha + self.age)
+    self.learningRate = self.alpha  / (2*self.alpha + self.age)
     reward = self.rewards(self)
     self.lastReward = reward
     

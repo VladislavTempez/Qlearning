@@ -12,19 +12,18 @@ import pickle
 #                 Parameters                   #
 ################################################
 
-learnersNumber = 1 
-adultsNumber = 8 
-learntNumber = 1
+learnersNumber = 10 
+adultsNumber = 1 
+learntNumber = 0
 popSize= learnersNumber + adultsNumber + learntNumber
-runDuration = 1*10**(5) 
 ringSize = 13 
+runDuration = ringSize * 5 * 10000 
 reward = 100
-punition = -2 
+punition = -5 
 previousKnowledge = {}
-knowledgeList=['Fish9-2016-06-06 13-10-03-930.log']
+knowledgeList=['Fish10-2016-06-07 10-56-44-973.log']
 #Setting the explore rate evolution. alpha / (alpha + n). 
-
-decreasePoint = 1 /3 # Fraction of the run at which exploreRate is decreaseValue
+decreasePoint = 1 /2 # Fraction of the run at which exploreRate is decreaseValue
 decreaseValue = 1 / 2 
 
 
@@ -32,7 +31,10 @@ decreaseValue = 1 / 2
 #                 Useful values                #
 ################################################
 alpha = decreaseValue * runDuration * decreasePoint / (1 - decreaseValue)
+
+
 cycleLength = 5*ringSize
+
 def popUpdate(pop,date,cycleLength):
     for f in pop:
         if f.reachGroup  or f.lastReward == reward:
@@ -51,7 +53,7 @@ def reset(pop,date,cycleLength):
         f.joinGroupDate = cycleLength
         f.timeInGroup = 0
         f.reachGroup = False
-        f.pos = math.ceil( pop.index(f) * f.ringSize / len(pop) ) % f.ringSize
+        f.pos = (math.floor(2-3*random.random()) + pop.index(f) * math.ceil(f.ringSize / len(pop))) % f.ringSize
     return
    
 def smoothCurve(curve,windowsSize = -1):
@@ -111,7 +113,7 @@ for s in knowledgeList:
 for i in range(adultsNumber):
     adults.append(Fish(idFish = newID(),
                        ringSize = ringSize,
-                       rewards = rewards(punition,reward,minSizeOfGroup = math.floor(popSize * 0.8)),
+                       rewards = rewards(punition,reward,minSizeOfGroup = math.floor(popSize * 0.7)),
                        alpha = alpha,
                        criticalSize = 1,
                        learning = False))
@@ -119,21 +121,21 @@ for i in range(adultsNumber):
 for i in range(learnersNumber):
     learners.append(Fish(idFish = newID(),
                         ringSize = ringSize,
-                        rewards = rewards(punition,reward, minSizeOfGroup = math.floor(popSize * 0.8)),
+                        rewards = rewards(punition,reward, minSizeOfGroup = math.floor(popSize * 0.7)),
                         alpha = alpha,
                         criticalSize = 1,
                         learning = True))
 for i in range(learntNumber):
     learnt.append(Fish(idFish = newID(),
                     ringSize = ringSize,
-                    rewards = rewards(punition,reward, minSizeOfGroup = math.floor(popSize * 0.8)),
+                    rewards = rewards(punition,reward, minSizeOfGroup = math.floor(popSize * 0.7)),
                     alpha = alpha,
                     criticalSize = 1,
                     learning = True))
 
 pop = adults + learners + learnt
 for f in pop :
-    f.pos = pop.index(f) * math.ceil(ringSize / popSize) % f.ringSize
+    f.pos = (math.floor(2-3*random.random()) + pop.index(f) * math.ceil(ringSize / popSize)) % f.ringSize
     f.vision = pop
 
 for f in pop:
@@ -156,6 +158,8 @@ for t in range(runDuration) :
         f.act()
     for f in pop :
         f.update(f,t)
+#        f.exploreRate = 0.1
+#        f.learningRate = 0.1
     popUpdate(pop,t,cycleLength)
     if t % cycleLength == 0:
         joinGroupDateLearnersHist.append([f.joinGroupDate for f in learners])
@@ -165,9 +169,10 @@ for t in range(runDuration) :
         timeInGroupLearntHist.append([f.timeInGroup for f in learnt])
         joinGroupDateLearntHist.append([f.joinGroupDate for f in learnt])
         reset(pop,t,cycleLength)
-    for f in learners:
-        averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] + f.moveStock
-    averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / learnersNumber 
+    if learnersNumber > 0:
+        for f in learners:
+            averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] + f.moveStock
+        averageDistanceSinceGoal[t] = averageDistanceSinceGoal[t] / learnersNumber 
 
 ################################################
 #                 After Run process            #
@@ -194,14 +199,18 @@ infos = infos +'decreaseValue:' + str(decreaseValue) + '\n'
 infos = infos + 'learnersNumber:' + str(learnersNumber) + '\n'
 infos = infos + 'learntNumber:' + str(learntNumber) + '\n'
 pickle.dump(infos,logRun,2)
+
 pickle.dump(averageDistanceSinceGoal,logRun,2)
 pickle.dump(timeOfReward,logRun,2)
-pickle.dump(joinGroupDateLearnersHist,logRun,2)
-pickle.dump(timeInGroupLearnersHist,logRun,2)
-pickle.dump(joinGroupDateAdultsHist,logRun,2)
-pickle.dump(timeInGroupAdultsHist,logRun,2)
-pickle.dump(joinGroupDateLearntHist,logRun,2)
-pickle.dump(timeInGroupLearntHist,logRun,2)
+if learnersNumber > 0:
+    pickle.dump(joinGroupDateLearnersHist,logRun,2)
+    pickle.dump(timeInGroupLearnersHist,logRun,2)
+if adultsNumber > 0:
+    pickle.dump(joinGroupDateAdultsHist,logRun,2)
+    pickle.dump(timeInGroupAdultsHist,logRun,2)
+if learntNumber > 0:
+    pickle.dump(joinGroupDateLearntHist,logRun,2)
+    pickle.dump(timeInGroupLearntHist,logRun,2)
 for f in adults:
     pickle.dump(f.posHistory,logRun,2)
 for f in learners:
