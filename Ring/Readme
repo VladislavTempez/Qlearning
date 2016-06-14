@@ -1,0 +1,2 @@
+To run a simulation 'python runFish.py'.
+logs for the run are stored in logs/ and for the fishes in logs/Fish/
