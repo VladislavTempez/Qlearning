@@ -22,7 +22,7 @@ def load(filename):
     print('Learnt :',learntNumber)
     adultsNumber = popSize-learnersNumber-learntNumber
     print('Adults :',adultsNumber)
-    ringSize = float(infos[2].split(':')[1])
+    ringSize = int(infos[2].split(':')[1])
     print('Ring Size :',ringSize)
     decreasePoint = float(infos[3].split(':')[1])
     decreaseValue = float(infos[4].split(':')[1])
