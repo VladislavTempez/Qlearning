@@ -12,18 +12,18 @@ import pickle
 #                 Parameters                   #
 ################################################
 
-learnersNumber = 10 
-adultsNumber = 1 
+learnersNumber =50 
+adultsNumber = 0 
 learntNumber = 0
 popSize= learnersNumber + adultsNumber + learntNumber
-ringSize = 13 
-runDuration = ringSize * 5 * 10000 
+ringSize = 53 
+runDuration = ringSize * 5 * 5000 
 reward = 100
 punition = -5 
 previousKnowledge = {}
-knowledgeList=['Fish10-2016-06-07 10-56-44-973.log']
+knowledgeList=[]
 #Setting the explore rate evolution. alpha / (alpha + n). 
-decreasePoint = 1 /2 # Fraction of the run at which exploreRate is decreaseValue
+decreasePoint = 1 / 2 # Fraction of the run at which exploreRate is decreaseValue
 decreaseValue = 1 / 2 
 
 
@@ -37,7 +37,7 @@ cycleLength = 5*ringSize
 
 def popUpdate(pop,date,cycleLength):
     for f in pop:
-        if f.reachGroup  or f.lastReward == reward:
+        if f.lastReward == reward:
             f.timeInGroup = f.timeInGroup + 1
             f.moveStock = 0
             if f.joinGroupDate == cycleLength:
@@ -52,8 +52,7 @@ def reset(pop,date,cycleLength):
         f.timeSinceReward = 0
         f.joinGroupDate = cycleLength
         f.timeInGroup = 0
-        f.reachGroup = False
-        f.pos = (math.floor(2-3*random.random()) + pop.index(f) * math.ceil(f.ringSize / len(pop))) % f.ringSize
+        f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
     return
    
 def smoothCurve(curve,windowsSize = -1):
@@ -132,19 +131,22 @@ for i in range(learntNumber):
                     alpha = alpha,
                     criticalSize = 1,
                     learning = True))
+for f in learnt:
+    f.exploreRateMutable = False
+    f.learningRateMutable = False
+    f.age = runDuration
+    if initialKnowledge != []:
+        f.Q = random.choice(initialKnowledge).copy()
 
 pop = adults + learners + learnt
+
 for f in pop :
-    f.pos = (math.floor(2-3*random.random()) + pop.index(f) * math.ceil(ringSize / popSize)) % f.ringSize
+    f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
     f.vision = pop
 
 for f in pop:
     f.currentState = f.getState(f)
     f.posHistory.append(f.pos)
-
-for f in learnt:
-    f.Q = random.choice(initialKnowledge).copy()
-    f.age = runDuration ** 2
 
 ################################################
 #            Main Loop                         #
@@ -158,8 +160,9 @@ for t in range(runDuration) :
         f.act()
     for f in pop :
         f.update(f,t)
-#        f.exploreRate = 0.1
-#        f.learningRate = 0.1
+        if t>runDuration*3/4:
+            f.exploreRate = 0
+            f.learningRate = 0.1
     popUpdate(pop,t,cycleLength)
     if t % cycleLength == 0:
         joinGroupDateLearnersHist.append([f.joinGroupDate for f in learners])

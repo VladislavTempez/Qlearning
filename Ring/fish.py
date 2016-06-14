@@ -24,7 +24,7 @@ def sectorInit(self) :
     #limits of sectors :
     lim1 = self.criticalSize + 1 #strict limit, lim1 in the first index to be outside sector 1
     lim2 = 3 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/5)
-    lim3 = 5 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/5)
+    lim3 = 5 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/3)
     limInf=math.ceil(self.ringSize/2) + 1  
     sectors = ['far' for i in range(self.ringSize)]
 #checking that the limits are not larger than the ring
@@ -84,9 +84,7 @@ def decideNoLearning(self):
     maxSize=max(s) #detecting the larger group
     if maxSize == s[self.sectorList.index('near')]: #if it's optimal to not move, don't move
         self.nextAction = random.choice(['dontMove'])
-        self.reachGroup = True
     else :
-        self.reachGroup = False 
         sectorToGo=self.sectorList[s.index(maxSize)] #getting the sector in which the larger group is
         if sectorToGo == 'far':
             self.nextAction = random.choice(['left','right','dontMove'])
@@ -108,10 +106,11 @@ def updateLearning(self,date):
             self.eligibilityTrace[self.lastState][self.lastAction] = self.discountFactor ** (- self.timeSinceReward)
     else :
         self.eligibilityTrace[self.lastState] = {self.lastAction : self.discountFactor ** (-self.timeSinceReward)}
-
-    self.exploreRate = self.alpha / (self.alpha + self.age)
+    if self.exploreRateMutable:
+        self.exploreRate = self.alpha / (self.alpha + self.age)
+    if self.learningRateMutable:
+        self.learningRate = self.alpha  / (2*self.alpha + 3*self.age)
     self.age = self.age + 1
-    self.learningRate = self.alpha  / (2*self.alpha + self.age)
     reward = self.rewards(self)
     self.lastReward = reward
     
@@ -136,6 +135,7 @@ def updateLearning(self,date):
 def updateNoLearning(self,date):
     self.lastState = self.currentState
     self.currentState = self.getState(self)
+    self.lastReward = self.reward(self)
     self.posHistory.append(self.pos)
     self.age = self.age + 1
 
@@ -200,8 +200,9 @@ class Fish:
         self.timeSinceReward = 0
         self.moveStock = 0
         self.learning = learning
+        self.exploreRateMutable = True
+        self.learningRateMutable = True
         self.joinGroupDate = 0 
-        self.reachGroup = False
         self.timeInGroup = 0
         if not self.learning:
             self.update = updateNoLearning
