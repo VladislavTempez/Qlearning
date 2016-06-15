@@ -3,7 +3,7 @@ from curves import *
 
 
 def plotAverageReward(infos,timeOfReward):
-    [runDuration,popSize,learnersNumber,learntNumber,adultsNumber,ringSize,decreasePoint,decreaseValue] = infos
+    [runDuration,popSize,learnersNumber,adultsNumber,ringSize,decreasePoint,decreaseValue] = infos
 
     plt.plot(smoothCurve(timeOfReward))
     plt.xlabel('Time in fraction of the learning phase duration')

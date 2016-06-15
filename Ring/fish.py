@@ -11,7 +11,10 @@ import pickle
 #                 Useful values                #
 ################################################
 
+random.seed()
+
 fishId=0
+
 def newID():
     global fishId
     newId=fishId
@@ -25,8 +28,10 @@ def sectorInit(self) :
     lim1 = self.criticalSize + 1 #strict limit, lim1 in the first index to be outside sector 1
     lim2 = 3 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/5)
     lim3 = 5 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/3)
-    limInf=math.ceil(self.ringSize/2) + 1  
-    sectors = ['far' for i in range(self.ringSize)]
+    limInf = math.ceil(self.ringSize/2) + 1  
+
+    sectors = ['far' for i in range(self.ringSize)] #by default a position is in 'far' sector
+
 #checking that the limits are not larger than the ring
     if lim1 > limInf :
         lim1 = limInf
@@ -34,22 +39,20 @@ def sectorInit(self) :
         lim2 = limInf
     if lim3 > limInf :
         lim3 = limInf
-    for i in range(lim3,limInf):
-        sectors[i] = 'far'
-        sectors[-i] = 'far'
+
+#assigning the correct sector to each position, starting by the farther sectors
+
     for i in range(lim2, lim3):
-        sectors[i]='rightFar'
-        sectors[-i]='leftFar'
+        sectors[i]='farLeft'
+        sectors[-i]='farRight'
     for i in range(lim1 ,lim2):
-        sectors[i]='rightNear'
-        sectors[-i]='leftNear'
+        sectors[i]='nearLeft'
+        sectors[-i]='nearRight'
     for i in range(lim1):
-        sectors[i] = 'near'
-        sectors[-i] = 'near'
-    #giving direction to the defined sectors
-    directions = {'near' :  'dontMove', 'rightNear' : 'right', 'rightFar' :
-            'right', 'leftFar' : 'left', 'leftNear' : 'left' }
-    return sectors,directions
+        sectors[i] = 'central'
+        sectors[-i] = 'central'
+    
+    return sectors
 
 def getSector(self,fish):
     relativePos = (fish.pos - self.pos) % self.ringSize
@@ -79,26 +82,15 @@ def decideLearning(self):
         else : # nothing is known about this state, random decision
             self.nextAction = random.choice(['left','right','dontMove'])
 
-def decideNoLearning(self):
-    s=self.currentState
-    maxSize=max(s) #detecting the larger group
-    if maxSize == s[self.sectorList.index('near')]: #if it's optimal to not move, don't move
-        self.nextAction = random.choice(['dontMove'])
-    else :
-        sectorToGo=self.sectorList[s.index(maxSize)] #getting the sector in which the larger group is
-        if sectorToGo == 'far':
-            self.nextAction = random.choice(['left','right','dontMove'])
-        else:
-            self.nextAction = self.directions[sectorToGo]
-
-random.seed()
 
 def updateLearning(self,date):
+
     self.lastState = self.currentState
     self.currentState = self.getState(self)
     self.posHistory.append(self.pos)
     self.timeSinceReward = self.timeSinceReward + 1
-    #updating eliginility trace
+
+    #updating eligibility trace
     if self.lastState in self.eligibilityTrace.keys():
         if self.lastAction in self.eligibilityTrace[self.lastState].keys():
             self.eligibilityTrace[self.lastState][self.lastAction] = self.eligibilityTrace[self.lastState][self.lastAction] + self.discountFactor**(-self.timeSinceReward)
@@ -132,25 +124,17 @@ def updateLearning(self,date):
         self.eligibilityTrace = {}
         self.timeSinceReward = 0
 
-def updateNoLearning(self,date):
-    self.lastState = self.currentState
-    self.currentState = self.getState(self)
-    self.lastReward = self.reward(self)
-    self.posHistory.append(self.pos)
-    self.age = self.age + 1
-
 def rewards(punition = -2, reward = 10, minSizeOfGroup = 3):
-    def res(self):
+    def rewardFunction(self):
         state = self.currentState
-        near = state[self.sectorList.index('near')]
+        near = state[self.sectorList.index('central')]
         if near >= minSizeOfGroup: 
             return reward
         elif near < 2:
             return punition
         else :
             return 0
-    return res
-
+    return rewardFunction
 class Fish:
     def __init__(self,
                 idFish,
@@ -161,10 +145,8 @@ class Fish:
                 pos = 0,
                 learningRate = 1,
                 exploreRate = 1,
-                criticalSize = 2,
-                learningDecreaseRate = 0.9,
-                alpha = 10**20,
-                learning = True,
+                criticalSize = 1,
+                alpha = 1,
                 getState = getState,
                 decide = decideLearning,
                 update = updateLearning,
@@ -176,7 +158,6 @@ class Fish:
         self.pos = pos
         self.vision = vision
         self.learningRate = learningRate
-        self.learningDecreaseRate = learningDecreaseRate
         self.exploreRate = exploreRate
         self.alpha = alpha
         self.discountFactor = 0.95
@@ -189,7 +170,7 @@ class Fish:
         self.currentState = None
         self.lastReward = 0
         self.getState = getState
-        self.sectors,self.directions = sectorInit(self)
+        self.sectors = sectorInit(self)
         self.sectorList = list(set(self.sectors))
         self.decide = decide
         self.update = update
@@ -198,24 +179,15 @@ class Fish:
         self.posHistory = []
         self.dateOfReward=[]
         self.timeSinceReward = 0
-        self.moveStock = 0
-        self.learning = learning
         self.exploreRateMutable = True
         self.learningRateMutable = True
         self.joinGroupDate = 0 
         self.timeInGroup = 0
-        if not self.learning:
-            self.update = updateNoLearning
-            self.decide = decideNoLearning
-            self.exploreRate = 0
-            self.discountFactor = 0
         def goLeft(self):
-            self.pos = (self.pos - self.speed)% self.ringSize
-            self.moveStock = self.moveStock + self.speed
+            self.pos = (self.pos + self.speed)% self.ringSize
             return
         def goRight(self):
-            self.pos = (self.pos + self.speed)% self.ringSize
-            self.moveStock = self.moveStock + self.speed
+            self.pos = (self.pos - self.speed)% self.ringSize
             return
         def dontMove(self):
             return

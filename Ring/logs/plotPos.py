@@ -9,7 +9,7 @@ else:
 logsLocFile=open(filename)
 logsFileName=logsLocFile.read().splitlines()[0]
 logsLocFile.close()
-infos,averageDistanceSinceGoal,timeOfReward,joinGroupDateLearnersHist,timeInGroupLearnersHist,joinGroupDateAdultsHist,timeInGroupAdultsHist,joinGroupDateLearntHist,timeInGroupLearntHist,posHistoryA,posHistoryL,posHistoryLearnt = load(logsFileName)
+infos,timeOfReward,joinGroupDateLearnersHist,timeInGroupLearnersHist,joinGroupDateAdultsHist,timeInGroupAdultsHist,posHistoryA,posHistoryL = load(logsFileName)
 
-plotPos(infos,posHistoryA,posHistoryL,posHistoryLearnt)
+plotPos(infos,posHistoryA,posHistoryL)
 
