@@ -1,8 +1,22 @@
 import matplotlib.pyplot as plt
 from curves import *
 def plotPos(infos,posHistoryA,posHistoryL):
-    
-    [runDuration,popSize,learnersNumber,adultsNumber,ringSize,decreasePoint,decreaseValue] = infos
+ 
+    [
+            runDuration,
+            popSize,
+            ringSize,
+            decreasePoint,
+            decreaseValue,
+            learnersNumber,
+            adultsNumber,
+            reward,
+            penalty,
+            minSizeOfGroup,
+            minimumDistanceToBeInGroup,
+            pointToStopExploration,
+            cycleLength
+            ] = infos
 
     maxPlot = min(runDuration, int(ringSize) * 5 *3 )
     

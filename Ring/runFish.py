@@ -6,21 +6,22 @@ from fish import *
 import math
 import time
 import pickle
+from QmapFunctions import *
 #import matplotlib.pyplot as plt
 
 ################################################
 #                 Parameters                   #
 ################################################
 
-learnersNumber = 10 
+learnersNumber = 10
 adultsNumber = 0 
 popSize= learnersNumber + adultsNumber
 ringSize = 13 
 cycleLength = 5 * ringSize
-runDuration = cycleLength * 2500 
+runDuration = cycleLength * 2500
 reward = 100
-punition = -5 
-minSizeOfGroup = math.floor(popSize * 0.8)
+penalty = -5 
+minSizeOfGroup = math.floor(10 * 0.8)
 minimumDistanceToBeInGroup = 1
 previousKnowledge = {}
 
@@ -76,11 +77,17 @@ timeInGroupLearnersHist = []
 joinGroupDateAdultsHist = []
 timeInGroupAdultsHist = []
 initialKnowledge = []
+try:
+    fishNamesFile = open('logs/Fish/FishToIntegrate','r')
+    fishNamesList = fishNamesFile.read().split('\n')
+    listQmap = [getKnowledgeFromFish('logs/Fish/'+fishName) for fishName in fishNamesList if fishName != '']
+except FileNotFoundError:
+    listQmap = [{}]
 
 for i in range(adultsNumber):
     adults.append(Fish(idFish = newID(),
                        ringSize = ringSize,
-                       rewards = rewards(punition,reward,minSizeOfGroup = minSizeOfGroup),
+                       rewards = rewards(penalty,reward,minSizeOfGroup = minSizeOfGroup),
                        alpha = alpha,
                        criticalSize = minimumDistanceToBeInGroup,
                        ))
@@ -88,12 +95,18 @@ for i in range(adultsNumber):
 for i in range(learnersNumber):
     learners.append(Fish(idFish = newID(),
                         ringSize = ringSize,
-                        rewards = rewards(punition,reward, minSizeOfGroup = minSizeOfGroup),
+                        rewards = rewards(penalty,reward, minSizeOfGroup = minSizeOfGroup),
                         alpha = alpha,
                         criticalSize = minimumDistanceToBeInGroup,
                         ))
 pop = adults + learners
 
+for f in adults:
+    f.Q = random.choice(listQmap).copy()
+    f.exploreRateMutable = False
+    f.exploreRate = 0
+    f.learningRateMutable = False
+    f.learningRate = 0
 for f in pop :
     f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
     f.vision = pop
@@ -107,8 +120,14 @@ for f in pop:
 ################################################
 
 for t in range(runDuration) :
+    if t % cycleLength == 0:
+        joinGroupDateLearnersHist.append([f.joinGroupDate for f in learners])
+        timeInGroupLearnersHist.append([f.timeInGroup for f in learners])
+        joinGroupDateAdultsHist.append([f.joinGroupDate for f in adults])
+        timeInGroupAdultsHist.append([f.timeInGroup for f in adults])
+        reset(pop,t,cycleLength)
     for f in pop :
-        f.decide(f)
+        f.policy(f)
     for f in pop :
         f.act()
     for f in pop :
@@ -117,20 +136,16 @@ for t in range(runDuration) :
             f.exploreRate = 0
             f.learningRate = 0
     popUpdate(pop,t,cycleLength)
-    if t % cycleLength == 0:
-        joinGroupDateLearnersHist.append([f.joinGroupDate for f in learners])
-        timeInGroupLearnersHist.append([f.timeInGroup for f in learners])
-        joinGroupDateAdultsHist.append([f.joinGroupDate for f in adults])
-        timeInGroupAdultsHist.append([f.timeInGroup for f in adults])
-        reset(pop,t,cycleLength)
 
 ################################################
 #                 After Run process            #
 ################################################
+print([len(f.Q) for f in pop])
+print(distanceMatrix([f.Q for f in pop],discreteDistance))
 timeOfReward = []
 for i in range(runDuration):
     timeOfReward.append(0)
-for f in learners:
+for f in pop:
     for j in f.dateOfReward:
             timeOfReward[j] = timeOfReward[j] + 1
 date = time.time()
@@ -145,9 +160,16 @@ logRun=open('logs/logRunD_'+str(math.log10(runDuration))+'P_'+str(popSize)+'S_'+
 infos='runDuration:' + str(runDuration) + '\n'
 infos = infos +'popSize:' + str(popSize) + '\n' 
 infos = infos + 'ringSize:' + str(ringSize) + '\n' 
-infos= infos + 'decreasePoint:' + str(decreasePoint) + '\n'
-infos = infos +'decreaseValue:' + str(decreaseValue) + '\n'
+infos = infos + 'decreasePoint:' + str(decreasePoint) + '\n'
+infos = infos + 'decreaseValue:' + str(decreaseValue) + '\n'
 infos = infos + 'learnersNumber:' + str(learnersNumber) + '\n'
+infos = infos + 'adultsNumber:' + str(adultsNumber) + '\n'
+infos = infos + 'reward:' + str(reward) + '\n'
+infos = infos + 'penalty:' + str(penalty) + '\n'
+infos = infos + 'minSizeOfGroup:' + str(minSizeOfGroup) + '\n'
+infos = infos + 'minimumDistanceToBeInGroup:' + str(minimumDistanceToBeInGroup) + '\n'
+infos = infos + 'pointToStopExploration:' + str(pointToStopExploration) + '\n'
+infos = infos + 'cycleLength:' + str(cycleLength) + '\n'
 pickle.dump(infos,logRun,2)
 
 pickle.dump(timeOfReward,logRun,2)

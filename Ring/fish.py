@@ -13,7 +13,14 @@ import pickle
 
 random.seed()
 
-fishId=0
+numberOfRepresentant = 10
+
+fishId = 0
+
+def rank(valueList):
+    indexList = [(valueList[i],i) for i in range(len(valueList))]
+    indexList.sort()
+    return [b for (a,b) in indexList]
 
 def newID():
     global fishId
@@ -59,13 +66,25 @@ def getSector(self,fish):
     return self.sectors[relativePos]
 
 def getState(self):
-    state=[0 for i in self.sectorList]
+    fishDistribution = [0 for i in self.sectorList]
+    state = [0 for i in self.sectorList]
+    popSize = len(self.vision)
     for fish in self.vision:
         fishSector = getSector(self,fish)
-        state[self.sectorList.index(fishSector)] = state[self.sectorList.index(fishSector)] + 1
+        fishDistribution[self.sectorList.index(fishSector)] = fishDistribution[self.sectorList.index(fishSector)] + 1
+    fishDistribution = [j / popSize for j in fishDistribution]
+    state = [math.floor(j*numberOfRepresentant) for j in fishDistribution]
+    distributionRemaining = [fishDistribution[i] - state[i] for i in range(len(state))]
+    rankedDistributionRemaining = rank(distributionRemaining)
+    remainingRepresentant = numberOfRepresentant - sum(state)
+    for i in range(remainingRepresentant):
+        state[rankedDistributionRemaining[i]] = state[rankedDistributionRemaining[i]] + 1
+
+    if sum(state) >  numberOfRepresentant:
+        print('Error in selection of representants')
     return tuple(state)
 
-def decideLearning(self):
+def policy(self): 
     s = self.currentState
     r = random.random()
     if r < self.exploreRate : # taking one action at random to explore
@@ -124,14 +143,14 @@ def updateLearning(self,date):
         self.eligibilityTrace = {}
         self.timeSinceReward = 0
 
-def rewards(punition = -2, reward = 10, minSizeOfGroup = 3):
+def rewards(penalty = -2, reward = 10, minSizeOfGroup = 3):
     def rewardFunction(self):
         state = self.currentState
         near = state[self.sectorList.index('central')]
         if near >= minSizeOfGroup: 
             return reward
         elif near < 2:
-            return punition
+            return penalty
         else :
             return 0
     return rewardFunction
@@ -148,7 +167,7 @@ class Fish:
                 criticalSize = 1,
                 alpha = 1,
                 getState = getState,
-                decide = decideLearning,
+                policy = policy,
                 update = updateLearning,
                 ):
         self.idFish = idFish
@@ -172,7 +191,7 @@ class Fish:
         self.getState = getState
         self.sectors = sectorInit(self)
         self.sectorList = list(set(self.sectors))
-        self.decide = decide
+        self.policy = policy
         self.update = update
         self.states = []
         self.eligibilityTrace = {}
