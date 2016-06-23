@@ -4,17 +4,21 @@
 
 import math
 import random
+#To date the end of the learnin phase
 import time
+#To write logs
 import pickle 
 
 ################################################
 #                 Useful values                #
 ################################################
-
+#Initialize random seed for random number generator
 random.seed()
 
+#number of representants for fishes in sectors
 numberOfRepresentant = 10
 
+#Initialize id for fishes
 fishId = 0
 
 def rank(valueList):
@@ -190,7 +194,10 @@ class Fish:
         self.lastReward = 0
         self.getState = getState
         self.sectors = sectorInit(self)
-        self.sectorList = list(set(self.sectors))
+        self.sectorList = [] 
+        for j in self.sectors:
+            if not j in self.sectorList:
+                self.sectorList.append(j)
         self.policy = policy
         self.update = update
         self.states = []
