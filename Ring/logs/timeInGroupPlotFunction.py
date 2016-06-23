@@ -18,9 +18,9 @@ def plotTimeInGroup(infos,timeInGroupLearnersHist,timeInGroupAdultsHist):
             cycleLength
             ] = infos
     for i in range(learnersNumber):
-        plt.plot(smoothCurve([t[i] for t in timeInGroupLearnersHist]),color = 'r')
+        plt.plot(smoothCurve([t[i] for t in timeInGroupLearnersHist],1),color = 'r')
     for i in range(adultsNumber):
-        plt.plot(smoothCurve(timeInGroupAdultsHist[i]),color = 'b')
+        plt.plot(smoothCurve([t[i] for t in timeInGroupAdultsHist]),color = 'b')
 
     plt.xlabel('Time in fraction of the learning phase')
     plt.ylabel('Average time spent within the group')

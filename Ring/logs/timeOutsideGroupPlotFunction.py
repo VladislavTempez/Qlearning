@@ -24,10 +24,8 @@ def plotTimeOutGroup(infos,timeInGroupLearnersHist,timeInGroupAdultsHist,joinGro
 
     for i in range(learnersNumber):
         plt.plot(smoothCurve([t[i] for t in timeOutsideGroupLearners]),color = 'r')
-        plt.plot(smoothCurve([t[i] for t in timeInGroupLearnersHist]),color = 'g')
     for i in range(adultsNumber):
         plt.plot(smoothCurve([t[i] for t in timeOutsideGroupAdults]),color = 'b')
-        plt.plot(smoothCurve(timeInGroupAdultsHist[i]),color = 'g')
 
     plt.xlabel('Time in fraction of the learning phase')
     plt.ylabel('Average time spent outside the group')
@@ -35,12 +33,8 @@ def plotTimeOutGroup(infos,timeInGroupLearnersHist,timeInGroupAdultsHist,joinGro
 
     for i in range(learnersNumber):
         plt.plot(smoothCurve([t[i] for t in timeOutsideGroupAfterJoiningLearners]),color = 'r')
-        plt.plot(smoothCurve([t[i] for t in timeInGroupLearnersHist]),color = 'g')
-        plt.plot(smoothCurve([t[i] for t in joinGroupDateLearnersHist]),color = 'b')
     for i in range(adultsNumber):
         plt.plot(smoothCurve([t[i] for t in timeOutsideGroupAfterJoiningAdults]),color = 'b')
-        plt.plot(smoothCurve(timeInGroupAdultsHist[i]),color = 'g')
-        plt.plot(smoothCurve(joinGroupDateAdultsHist[i]),color = 'b')
 
     plt.xlabel('Time in fraction of the learning phase')
     plt.ylabel('Average time spent outside the group after joining the group')

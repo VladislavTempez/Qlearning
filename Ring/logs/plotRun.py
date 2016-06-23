@@ -2,6 +2,7 @@ from loadLogs import *
 from joinGroupDatePlotFunction import *
 from positionPlotFunction import *
 from timeInGroupPlotFunction import *
+from timeOutsideGroupPlotFunction import *
 from averageNumberOfRewardPlotFunction import *
 from sys import argv
 if len(argv) > 1:

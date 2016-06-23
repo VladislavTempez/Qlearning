@@ -43,7 +43,7 @@ def plotPos(infos,posHistoryA,posHistoryL):
     plt.title('position of fishes for the '+str(maxPlot)+' intermediate steps')
     plt.show()
 
-    plotRangeMin = runDuration - maxPlot 
+    plotRangeMin = runDuration - 3*cycleLength
     plotRangeMax = runDuration - 1
 
     for f in range(adultsNumber):

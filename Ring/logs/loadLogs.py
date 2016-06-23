@@ -50,12 +50,10 @@ def load(filename):
     timeInGroupLearnersHist = []
     joinGroupDateAdultsHist = []
     timeInGroupAdultsHist = [] 
-    if learnersNumber > 0 :
-        joinGroupDateLearnersHist = pickle.load(logFile)
-        timeInGroupLearnersHist = pickle.load(logFile)
-    if adultsNumber > 0:
-        joinGroupDateAdultsHist = pickle.load(logFile)
-        timeInGroupAdultsHist = pickle.load(logFile)
+    joinGroupDateLearnersHist = pickle.load(logFile)
+    timeInGroupLearnersHist = pickle.load(logFile)
+    joinGroupDateAdultsHist = pickle.load(logFile)
+    timeInGroupAdultsHist = pickle.load(logFile)
     posHistoryA = []
     posHistoryL = []
     for f in range(adultsNumber):

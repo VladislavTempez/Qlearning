@@ -20,7 +20,7 @@ def plotJoinGroup(infos,joinGroupDateAdultsHist,joinGroupDateLearnersHist):
     for i in range(learnersNumber):
         plt.plot(smoothCurve([t[i] for t in joinGroupDateLearnersHist]),color = 'r')
     for i in range(adultsNumber):
-        plt.plot(smoothCurve(joinGroupDateAdultsHist[i]),color = 'b')
+        plt.plot(smoothCurve([t[i] for t in joinGroupDateAdultsHist]),color = 'b')
     plt.xlabel('Time in fraction of the learning phase')
     plt.ylabel('Average date for reaching group for learners')
     plt.show()
