@@ -32,7 +32,7 @@ def newID():
     fishId = fishId + 1
     return newId
 
-#defining the different relative sectors
+#Defining the different relative sectors
 
 def sectorInit(self) :
     #limits of sectors :
@@ -43,7 +43,7 @@ def sectorInit(self) :
 
     sectors = ['far' for i in range(self.ringSize)] #by default a position is in 'far' sector
 
-#checking that the limits are not larger than the ring
+#Checking that the limits are not larger than the ring
     if lim1 > limInf :
         lim1 = limInf
     if lim2 > limInf :
@@ -51,7 +51,7 @@ def sectorInit(self) :
     if lim3 > limInf :
         lim3 = limInf
 
-#assigning the correct sector to each position, starting by the farther sectors
+#Assigning the correct sector to each position, starting by the farther sectors
 
     for i in range(lim2, lim3):
         sectors[i]='farLeft'
@@ -64,7 +64,7 @@ def sectorInit(self) :
         sectors[-i] = 'central'
     
     return sectors
-
+#Returns the sector in which is a fish relatively to the agent.
 def getSector(self,fish):
     relativePos = (fish.pos - self.pos) % self.ringSize
     return self.sectors[relativePos]
@@ -103,6 +103,7 @@ def policy(self):
             else :
                 self.nextAction = maxAction
         else : # nothing is known about this state, random decision
+            self.Q[s] = {'left': 0, 'right': 0,'dontMove':0}
             self.nextAction = random.choice(['left','right','dontMove'])
 
 
@@ -144,8 +145,6 @@ def updateLearning(self,date):
                     self.Q[state] = {action : reward * value * self.discountFactor ** (self.timeSinceReward) * self.learningRate}
         if reward > 0:
             self.dateOfReward.append(date)
-        self.eligibilityTrace = {}
-        self.timeSinceReward = 0
 
 def rewards(penalty = -2, reward = 10, minSizeOfGroup = 3):
     def rewardFunction(self):
