@@ -17,7 +17,7 @@ from QmapFunctions import *
 #                 Parameters                   #
 ################################################
 
-learnersNumber = 10
+learnersNumber = 20
 adultsNumber = 0 
 popSize = learnersNumber + adultsNumber
 ringSize = 13 
@@ -242,7 +242,7 @@ logRun.close()
 ################################################
 
 learnersNumber2 = 0
-adultsNumber2 = 9
+adultsNumber2 = 0
 popSize2 = learnersNumber2 + adultsNumber2
 ringSize2 = 13 
 #At the begining of a cycle, positions are reset
