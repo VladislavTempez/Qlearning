@@ -21,21 +21,23 @@ numberOfRepresentant = 10
 #Initialize id for fishes
 fishId = 0
 
+#From a number vector a_i gives the vector b were b_i is the rank of a_i in a.
 def rank(valueList):
     indexList = [(valueList[i],i) for i in range(len(valueList))]
     indexList.sort()
     return [b for (a,b) in indexList]
 
+#Global ID generator
 def newID():
     global fishId
     newId=fishId
     fishId = fishId + 1
     return newId
 
-#Defining the different relative sectors
-
+#Defining the different relative sectors and returns a vector where each positionhas a corresponding sector.
 def sectorInit(self) :
-    #limits of sectors :
+
+#limits of sectors :
     lim1 = self.criticalSize + 1 #strict limit, lim1 in the first index to be outside sector 1
     lim2 = 3 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/5)
     lim3 = 5 * self.criticalSize + 1 + math.ceil((self.ringSize - 13)/3)
@@ -52,7 +54,6 @@ def sectorInit(self) :
         lim3 = limInf
 
 #Assigning the correct sector to each position, starting by the farther sectors
-
     for i in range(lim2, lim3):
         sectors[i]='farLeft'
         sectors[-i]='farRight'
@@ -64,11 +65,13 @@ def sectorInit(self) :
         sectors[-i] = 'central'
     
     return sectors
+
 #Returns the sector in which is a fish relatively to the agent.
 def getSector(self,fish):
     relativePos = (fish.pos - self.pos) % self.ringSize
     return self.sectors[relativePos]
 
+#Return the state of the environment as the agent sees it.
 def getState(self):
     fishDistribution = [0 for i in self.sectorList]
     state = [0 for i in self.sectorList]
@@ -145,7 +148,10 @@ def updateLearning(self,date):
                     self.Q[state] = {action : reward * value * self.discountFactor ** (self.timeSinceReward) * self.learningRate}
         if reward > 0:
             self.dateOfReward.append(date)
+        self.eligibilityTrace = {}
+        self.timeSinceReward = 0
 
+#Define the reward associated to each state
 def rewards(penalty = -2, reward = 10, minSizeOfGroup = 3):
     def rewardFunction(self):
         state = self.currentState
@@ -157,7 +163,9 @@ def rewards(penalty = -2, reward = 10, minSizeOfGroup = 3):
         else :
             return 0
     return rewardFunction
+
 class Fish:
+#Initialization
     def __init__(self,
                 idFish,
                 ringSize,
@@ -173,6 +181,7 @@ class Fish:
                 policy = policy,
                 update = updateLearning,
                 ):
+
         self.idFish = idFish
         self.ringSize = ringSize
         self.criticalSize = criticalSize
@@ -194,9 +203,12 @@ class Fish:
         self.getState = getState
         self.sectors = sectorInit(self)
         self.sectorList = [] 
+        
+#Defining the format of state representation, here its the sectors in order
         for j in self.sectors:
             if not j in self.sectorList:
                 self.sectorList.append(j)
+
         self.policy = policy
         self.update = update
         self.states = []
@@ -208,14 +220,18 @@ class Fish:
         self.learningRateMutable = True
         self.joinGroupDate = 0 
         self.timeInGroup = 0
+
         def goLeft(self):
             self.pos = (self.pos + self.speed)% self.ringSize
             return
+
         def goRight(self):
             self.pos = (self.pos - self.speed)% self.ringSize
             return
+
         def dontMove(self):
             return
+
         self.actions={'left' : goLeft,'right' : goRight, 'dontMove' : dontMove}
 
     def distance(self,fish):
