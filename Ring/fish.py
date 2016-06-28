@@ -76,17 +76,21 @@ def getState(self):
     fishDistribution = [0 for i in self.sectorList]
     state = [0 for i in self.sectorList]
     popSize = len(self.vision)
+
+#counting the fishes and storing their position
     for fish in self.vision:
         fishSector = getSector(self,fish)
         fishDistribution[self.sectorList.index(fishSector)] = fishDistribution[self.sectorList.index(fishSector)] + 1
     fishDistribution = [j / popSize for j in fishDistribution]
-    state = [math.floor(j*numberOfRepresentant) for j in fishDistribution]
+#computing the integer part of the umber of representants.
+    state = [math.floor(j * numberOfRepresentant) for j in fishDistribution]
     distributionRemaining = [fishDistribution[i] - state[i] for i in range(len(state))]
+#sorting the sectors by decreasing remaining decimal part.
     rankedDistributionRemaining = rank(distributionRemaining)
     remainingRepresentant = numberOfRepresentant - sum(state)
+#dispatching remaining representant to sectors that have the higher decimal part.
     for i in range(remainingRepresentant):
         state[rankedDistributionRemaining[i]] = state[rankedDistributionRemaining[i]] + 1
-
     if sum(state) >  numberOfRepresentant:
         print('Error in selection of representants')
     return tuple(state)
