@@ -17,20 +17,20 @@ from QmapFunctions import *
 #                 Parameters                   #
 ################################################
 
-learnersNumber = 10
-adultsNumber = 0 
+learnersNumber = 00
+adultsNumber = 30 
 popSize = learnersNumber + adultsNumber
 ringSize = 13 
 #At the begining of a cycle, positions are reset
 cycleLength = 5 * ringSize
 
-runDuration = cycleLength *  5000
+runDuration = cycleLength *  25
 
 #reward for being in the group
 reward = 100
 
 #penalty for begin alone in the central sector
-penalty = -5 
+penalty = -50 
 
 #Minimum number of individuals in the group
 minSizeOfGroup = math.floor(10 * 0.8)

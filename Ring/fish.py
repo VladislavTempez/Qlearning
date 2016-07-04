@@ -81,13 +81,18 @@ def getState(self):
     for fish in self.vision:
         fishSector = getSector(self,fish)
         fishDistribution[self.sectorList.index(fishSector)] = fishDistribution[self.sectorList.index(fishSector)] + 1
-    fishDistribution = [j / popSize for j in fishDistribution]
-#computing the integer part of the umber of representants.
-    state = [math.floor(j * numberOfRepresentant) for j in fishDistribution]
-    distributionRemaining = [fishDistribution[i] - state[i] for i in range(len(state))]
+        
+#computing the number of representants needed for each sector : we get real values.
+    fishRepresentant = [j / popSize * numberOfRepresentant for j in fishDistribution]
+
+#computing the integer part of the number of representants.
+    state = [math.floor(j) for j in fishRepresentant]
+    distributionRemaining = [fishRepresentant[i] - state[i] for i in range(len(state))]
+
 #sorting the sectors by decreasing remaining decimal part.
     rankedDistributionRemaining = rank(distributionRemaining)
     remainingRepresentant = numberOfRepresentant - sum(state)
+
 #dispatching remaining representant to sectors that have the higher decimal part.
     for i in range(remainingRepresentant):
         state[rankedDistributionRemaining[i]] = state[rankedDistributionRemaining[i]] + 1
@@ -95,23 +100,30 @@ def getState(self):
         print('Error in selection of representants')
     return tuple(state)
 
+#Function that given a stat returns the action to do.
 def policy(self): 
     s = self.currentState
     r = random.random()
-    if r < self.exploreRate : # taking one action at random to explore
+
+# taking one action at random to explore
+    if r < self.exploreRate :
         self.nextAction = random.choice(['left','right','dontMove'])
+# chosing the actions that maximizes the reward.
     else :
         if s in self.Q.keys():  # already a value known for this state and action 
             maxVal,maxAction = max((value,key) for key,value in self.Q[s].items())
             minVal,minAction = min((value,key) for key,value in self.Q[s].items())
             possibleActions = [key for key in self.Q[s].keys()]
-            if maxVal == minVal: #all known actions are equivalent, choosing randomly
+ #all known actions are equivalent, choosing randomly
+            if maxVal == minVal:
                 self.nextAction = random.choice(possibleActions)
             else :
                 self.nextAction = maxAction
-        else : # nothing is known about this state, random decision
-            self.Q[s] = {'left': 0, 'right': 0,'dontMove':0}
+# nothing is known about this state, random decision
+        else : 
             self.nextAction = random.choice(['left','right','dontMove'])
+#This state was never met, initializing it to 0, the default value
+            self.Q[s] = {'left': 0, 'right': 0,'dontMove':0}
 
 
 def updateLearning(self,date):
