@@ -65,9 +65,11 @@ def reset(pop,date,cycleLength):
     for f in pop:
         f.eligibility = {}
         f.timeSinceReward = 0
+        f.lastState = None
         f.joinGroupDate = cycleLength
         f.timeInGroup = 0
         f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
+        f.currentState = f.getState(f)
     return
 
 #Load Qmap from a fish file
