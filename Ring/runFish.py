@@ -17,8 +17,8 @@ from QmapFunctions import *
 #                 Parameters                   #
 ################################################
 
-learnersNumber = 00
-adultsNumber = 30 
+learnersNumber = 10
+adultsNumber = 0 
 popSize = learnersNumber + adultsNumber
 ringSize = 13 
 #At the begining of a cycle, positions are reset
@@ -49,15 +49,6 @@ pointToStopExploration = 9/10 * runDuration
 #                 Useful values                #
 ################################################
 alpha = decreaseValue * runDuration * decreasePoint / (1 - decreaseValue)
-
-#update information about population
-def popUpdate(pop,date,cycleLength):
-    for f in pop:
-        if f.lastReward == reward:
-            f.timeInGroup = f.timeInGroup + 1
-            if f.joinGroupDate == cycleLength:
-                f.joinGroupDate = date % cycleLength 
-    return
 
 #Reset position of the fishes and the cycle informations
 def reset(pop,date,cycleLength):
@@ -140,23 +131,22 @@ for f in pop :
     f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
     f.vision = pop
 
-#Initializing the state of the environement
-for f in pop:
-    f.currentState = f.getState(f)
-    f.posHistory.append(f.pos)
-
 ################################################
 #            Main Loop                         #
 ################################################
 
-for t in range(runDuration) :
+for t in range(runDuration):
     #Begining of a cycle.
-    if t % cycleLength == 0:
+    if t % cycleLength == 0 and t > 0:
         joinGroupDateLearnersHist.append([f.joinGroupDate for f in learners])
         timeInGroupLearnersHist.append([f.timeInGroup for f in learners])
         joinGroupDateAdultsHist.append([f.joinGroupDate for f in adults])
         timeInGroupAdultsHist.append([f.timeInGroup for f in adults])
         reset(pop,t,cycleLength)
+
+    #Updating the state of the agents in the neww environment.
+    for f in pop :
+        f.update(f,t)
 
     #After a point the fishes are no longer exploring.
     if t > pointToStopExploration:
@@ -173,12 +163,6 @@ for t in range(runDuration) :
     for f in pop :
         f.act()
 
-    #Updating the state of the agents in the neww environment.
-    for f in pop :
-        f.update(f,t)
-
-    #Updating the metrics after a step
-    popUpdate(pop,t,cycleLength)
 
 ################################################
 #                 After Run process            #

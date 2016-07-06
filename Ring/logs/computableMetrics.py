@@ -21,8 +21,8 @@ def plotMetrics(infos,posHistoryA,posHistoryL):
     groupness1=[]
     groupness2=[]
     groupness3=[]
-    maxGroupSizeHist = []
-    minGroupSizeHist = []
+    maxNumberOfNeighbourHist = []
+    minNumberOfNeighbourHist = []
     firstTimeInGroupHist = []
     firstTimeInGroup = cycleLength;
     for i in range(runDuration):
@@ -61,37 +61,22 @@ def plotMetrics(infos,posHistoryA,posHistoryL):
         groupness3.append(stepGroupness3)
 
 #Size of groups
-        maxGroupSize = 0
-        maxPos = None
-        minGroupSize = popSize
-        for i in range(ringSize): 
-            currentGroupSize = fishRepartitionOnRing[i - 1] + fishRepartitionOnRing[i - 2] + fishRepartitionOnRing[i]
-            if currentGroupSize > maxGroupSize:
-                maxGroupSize = currentGroupSize
-                maxPos = i
-        fishRepartitionOnRingWithoutLargerGroup = fishRepartitionOnRing.copy()
-        fishRepartitionOnRingWithoutLargerGroup[maxPos - 1] = 0
-        fishRepartitionOnRingWithoutLargerGroup[maxPos - 2] = 0
-        fishRepartitionOnRingWithoutLargerGroup[maxPos] = 0
-        for i in range(ringSize): 
-            currentGroupSize = fishRepartitionOnRingWithoutLargerGroup[i - 1] + fishRepartitionOnRingWithoutLargerGroup[i - 2] + fishRepartitionOnRingWithoutLargerGroup[i]
-            if currentGroupSize < minGroupSize and fishRepartitionOnRingWithoutLargerGroup[i-1] > 0:
-                minGroupSize = currentGroupSize
-        maxGroupSizeHist.append(maxGroupSize)
-        minGroupSizeHist.append(minGroupSize)
+        numberOfNeighbour = [fishRepartitionOnRing[i - 2] + fishRepartitionOnRing[i - 1] + fishRepartitionOnRing[i] if fishRepartitionOnRing[i] > 0  else 0 for i in range(ringSize)]
+        maxNumberOfNeighbour = max(numberOfNeighbour)
+        minNumberOfNeighbour = min([i for i in numberOfNeighbour if i > 0])
+        maxNumberOfNeighbourHist.append(maxNumberOfNeighbour)
+        minNumberOfNeighbourHist.append(minNumberOfNeighbour)
 
 #Time before the first group
         
+        if (maxNumberOfNeighbour > minSizeOfGroup) and (i % cycleLength < firstTimeInGroup):
+            firstTimeInGroup = i % cycleLength
         if i % cycleLength == 0:
             if i > 0:
-                firstimeInGroupHist.append(firstTimeInGroup)
+                firstTimeInGroupHist.append(firstTimeInGroup)
             firstTimeInGroup = cycleLength;
-        for j in range(minSizeOfGroup,popSize+1):
-            if (j in fishRepartitionOnRing) and (i % cycleLength < firstTimeInGroup):
-                firstTimeInGroup = i % cycleLength
-                
 
-
+        print(i % cycleLength,numberOfNeighbour)
     plt.plot(smoothCurve(groupness1))
     plt.xlabel('Time in fraction of elarning phase')
     plt.ylabel('Sum of squared distance between agents')
@@ -101,15 +86,15 @@ def plotMetrics(infos,posHistoryA,posHistoryL):
     plt.ylabel('Sum of distances to next fish')
     plt.show()
     plt.plot(smoothCurve(groupness3))
-    plt.xlabel('Time in fraction of elarning phase')
+    plt.xlabel('Time in fraction of learning phase')
     plt.ylabel('Area of pseudo convolution')
     plt.show()
-    plt.plot(smoothCurve(maxGroupSizeHist))
-    plt.plot(smoothCurve(minGroupSizeHist))
+    plt.plot(smoothCurve(maxNumberOfNeighbourHist))
+    plt.plot(smoothCurve(minNumberOfNeighbourHist))
     plt.xlabel('Time in fraction of learning phase')
     plt.ylabel('Size of larger group and smaller group')
     plt.show()
-    plt.plot(smoothCurve(firstTimeInGroupHist))
+    plt.plot(smoothCurve(firstTimeInGroupHist,1))
     plt.xlabel('Time in fraction of learning phase')
     plt.ylabel('Time to form group')
     plt.show()
