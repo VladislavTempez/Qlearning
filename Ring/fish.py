@@ -171,10 +171,13 @@ def updateLearning(self,date):
 def rewards(penalty = -2, reward = 10, minSizeOfGroup = 3):
     def rewardFunction(self):
         state = self.currentState
-        near = state[self.sectorList.index('central')]
-        if near >= minSizeOfGroup: 
+        central = state[self.sectorList.index('central')]
+        near = state[self.sectorList.index('nearLeft')] + state[self.sectorList.index('nearRight')]
+        far = state[self.sectorList.index('farLeft')] + state[self.sectorList.index('farRight')]
+        unknown = state[self.sectorList.index('far')]
+        if central >= minSizeOfGroup: 
             return reward
-        elif near < 2:
+        elif central < 2:
             return penalty
         else :
             return 0
