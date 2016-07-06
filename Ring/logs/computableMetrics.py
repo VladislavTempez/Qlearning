@@ -30,7 +30,7 @@ def plotMetrics(infos,posHistoryA,posHistoryL):
         for f in range(learnersNumber):
             fishPositionOnRing.append(posHistoryL[f][i])
         for f in range(adultsNumber): 
-            fishPositionOnRing.append(posHistoryL[f][i])
+            fishPositionOnRing.append(posHistoryA[f][i])
         fishRepartitionOnRing = [0 for k in range(ringSize)]
         for j in fishPositionOnRing:
             fishRepartitionOnRing[j] = fishRepartitionOnRing[j] + 1
@@ -76,19 +76,19 @@ def plotMetrics(infos,posHistoryA,posHistoryL):
                 firstTimeInGroupHist.append(firstTimeInGroup)
             firstTimeInGroup = cycleLength;
 
-        print(i % cycleLength,numberOfNeighbour)
+    #    print(i % cycleLength,numberOfNeighbour)
     plt.plot(smoothCurve(groupness1))
     plt.xlabel('Time in fraction of elarning phase')
     plt.ylabel('Sum of squared distance between agents')
     plt.show()
-    plt.plot(smoothCurve(groupness2))
-    plt.xlabel('Time in fraction of elarning phase')
-    plt.ylabel('Sum of distances to next fish')
-    plt.show()
-    plt.plot(smoothCurve(groupness3))
-    plt.xlabel('Time in fraction of learning phase')
-    plt.ylabel('Area of pseudo convolution')
-    plt.show()
+#    plt.plot(smoothCurve(groupness2))
+#    plt.xlabel('Time in fraction of elarning phase')
+#    plt.ylabel('Sum of distances to next fish')
+#    plt.show()
+#    plt.plot(smoothCurve(groupness3))
+#    plt.xlabel('Time in fraction of learning phase')
+#    plt.ylabel('Area of pseudo convolution')
+#    plt.show()
     plt.plot(smoothCurve(maxNumberOfNeighbourHist))
     plt.plot(smoothCurve(minNumberOfNeighbourHist))
     plt.xlabel('Time in fraction of learning phase')
