@@ -107,24 +107,26 @@ def policy(self):
 
 # taking one action at random to explore
     if r < self.exploreRate :
-        self.nextAction = random.choice(['left','right','dontMove'])
-# chosing the actions that maximizes the reward.
-    else :
-        if s in self.Q.keys():  # already a value known for this state and action 
-            maxVal,maxAction = max((value,key) for key,value in self.Q[s].items())
-            minVal,minAction = min((value,key) for key,value in self.Q[s].items())
-            possibleActions = [key for key in self.Q[s].keys()]
- #all known actions are equivalent, choosing randomly
-            if maxVal == minVal:
-                self.nextAction = random.choice(possibleActions)
-            else :
-                self.nextAction = maxAction
-# nothing is known about this state, random decision
-        else : 
-            self.nextAction = random.choice(['left','right','dontMove'])
-#This state was never met, initializing it to 0, the default value
-            self.Q[s] = {'left': 0, 'right': 0,'dontMove':0}
+        self.nextAction = random.choice([k for k in self.actions.keys()])
 
+# chosing the action that maximizes the reward.
+    else :
+# nothing is known about this state, initializing it at 0.
+        if not (s in self.Q.keys()):  
+            self.Q[s] = {action : 0 for action in self.actions.keys()}
+
+#Computing highest value action
+
+        maxVal,maxAction = max((value,key) for key,value in self.Q[s].items())
+        minVal,minAction = min((value,key) for key,value in self.Q[s].items())
+
+        possibleActions = [key for key in self.Q[s].keys()]
+
+#all known actions are equivalent, choosing randomly
+        if maxVal == minVal:
+            self.nextAction = random.choice(possibleActions)
+        else :
+            self.nextAction = maxAction
 
 def updateLearning(self,date):
 
@@ -133,35 +135,42 @@ def updateLearning(self,date):
     self.posHistory.append(self.pos)
     self.timeSinceReward = self.timeSinceReward + 1
 
-    #updating eligibility trace
+#Updating eligibility trace. Storing and eligibility value in a dict to prevent eligibility trace to get to long. Each value is sum(lambda^-k) for k the time at which the state was visited. When clearing it, multiplying by lambda^n give the correct value to it, making fresher action more rewarded and older one more discounted.
+
+    oldEligibility = self.eligibilityTrace.get(self.lastState,{}).get(self.lastAction,0)
+    newEligibility = oldEligibility + self.discountFactor ** (-self.timeSinceReward)
+
     if self.lastState in self.eligibilityTrace.keys():
-        if self.lastAction in self.eligibilityTrace[self.lastState].keys():
-            self.eligibilityTrace[self.lastState][self.lastAction] = self.eligibilityTrace[self.lastState][self.lastAction] + self.discountFactor**(-self.timeSinceReward)
-        else :
-            self.eligibilityTrace[self.lastState][self.lastAction] = self.discountFactor ** (- self.timeSinceReward)
+        self.eligibilityTrace[self.lastState][self.lastAction] = newEligibility 
     else :
-        self.eligibilityTrace[self.lastState] = {self.lastAction : self.discountFactor ** (-self.timeSinceReward)}
+        self.eligibilityTrace[self.lastState] = {self.lastAction : newEligibility}
+
+#Updating learning parameters
     if self.exploreRateMutable:
         self.exploreRate = self.alpha / (self.alpha + self.age)
     if self.learningRateMutable:
         self.learningRate = self.alpha  / (2*self.alpha + 3*self.age)
+
     self.age = self.age + 1
     reward = self.rewards(self)
     self.lastReward = reward
     
-    #updating Q
+#Updating Q
     if reward == 0:
         return
     else:
+        expectedCumulativeReward = max([self.Q.get(self.currentState,{}).get(action,0) for action in self.actions.keys()])
         for state,vTemp in self.eligibilityTrace.items():
+
             for action,value in vTemp.items():
-                if state in self.Q.keys():
-                    if action in self.Q[state].keys():
-                        self.Q[state][action] = self.Q[state][action] * (1 - self.learningRate) + reward * value * self.discountFactor**(self.timeSinceReward) * self.learningRate
-                    else :
-                        self.Q[state][action] = reward * value * self.discountFactor ** (self.timeSinceReward) * self.learningRate
-                else :
-                    self.Q[state] = {action : reward * value * self.discountFactor ** (self.timeSinceReward) * self.learningRate}
+
+                oldQValue = self.Q.get(state,{}).get(action,0)
+                eligibility = value * (self.discountFactor) ** (self.timeSinceReward)
+                newQValue = (1-self.learningRate) * oldQValue + self.learningRate * eligibility * (reward + expectedCumulativeReward)
+                if not (state in self.Q.keys()):
+                    self.Q[state] = {action : 0 for action in self.actions.keys()}
+                self.Q[state][action] = newQValue
+
         if reward > 0:
             self.dateOfReward.append(date)
         self.eligibilityTrace = {}
@@ -223,7 +232,7 @@ class Fish:
         self.sectors = sectorInit(self)
         self.sectorList = [] 
         
-#Defining the format of state representation, here its the sectors in order
+#Defining the format of state representation, here its the sectors in order i for increasing positions on the ring
         for j in self.sectors:
             if not j in self.sectorList:
                 self.sectorList.append(j)
@@ -281,10 +290,10 @@ class Fish:
         return str(self.idFish)
 
     def __eq__(self,fish):
-        return self.idFish==fish.idFish
+        return self.idFish == fish.idFish
 
     def __ne__(self,fish):
-        return self.idFish!=fish.idFish
+        return self.idFish != fish.idFish
 
     def __lt__(self,fish):
-        return self.idFish<fish.idFish
+        return self.idFish < fish.idFish

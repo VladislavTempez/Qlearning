@@ -30,7 +30,7 @@ runDuration = cycleLength *  25
 reward = 100
 
 #penalty for begin alone in the central sector
-penalty = -50 
+penalty = -5 
 
 #Minimum number of individuals in the group
 minSizeOfGroup = math.floor(10 * 0.8)
