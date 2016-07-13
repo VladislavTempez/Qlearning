@@ -33,12 +33,12 @@ def plotMetrics(infos,posHistoryA,posHistoryL):
         for j in fishPositionOnRing:
             fishRepartitionOnRing[j] = fishRepartitionOnRing[j] + 1
 #sum of squared distances
-        stepGroupness = sum([sum([fishRepartitionOnRing[k] * fishRepartitionOnRing[j] * min((k-j)%ringSize,(j-k)%ringSize) for k in range(ringSize) if fishRepartitionOnRing[k] > 0]) for j in range(ringSize) if fishRepartitionOnRing[j] > 0]) /2
+        stepGroupness = sum([sum([fishRepartitionOnRing[k] * fishRepartitionOnRing[j] * min((k-j)%ringSize,(j-k)%ringSize)**2 for k in range(ringSize) if fishRepartitionOnRing[k] > 0]) for j in range(ringSize) if fishRepartitionOnRing[j] > 0]) /2
 
         groupness.append(stepGroupness)
 
 #Size of groups
-        numberOfNeighbour = [fishRepartitionOnRing[j - 2] + fishRepartitionOnRing[j - 1] + fishRepartitionOnRing[j] if fishRepartitionOnRing[j] > 0  else 0 for j in range(ringSize)]
+        numberOfNeighbour = [fishRepartitionOnRing[j - 2] + fishRepartitionOnRing[j - 1] + fishRepartitionOnRing[j] if fishRepartitionOnRing[j-1] > 0  else 0 for j in range(ringSize)]
         maxNumberOfNeighbour = max(numberOfNeighbour)
         minNumberOfNeighbour = min([j for j in numberOfNeighbour if j > 0])
         maxNumberOfNeighbourHist.append(maxNumberOfNeighbour)

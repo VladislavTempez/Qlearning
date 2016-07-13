@@ -226,27 +226,25 @@ for t in range(runDuration):
         f.act()
 
     #Computing Metrics
-    fishPositionOnRing = []
-    for f in pop:
-        fishPositionOnRing.append(f.pos)
+    fishPositionOnRing = [f.pos for f in pop]
     fishRepartitionOnRing = [0 for k in range(ringSize)]
     for j in fishPositionOnRing:
-        fishRepartitionOnRing[j] = fishRepartitionOnRing[j] + 1
+        fishRepartitionOnRing[j] += 1
 
     #sum of squared distances
-    sumSquaredDistance = sum([sum([fishRepartitionOnRing[k] * fishRepartitionOnRing[j] * min((k-j)%ringSize,(j-k)%ringSize) for k in range(ringSize) if fishRepartitionOnRing[k] > 0]) for j in range(ringSize) if fishRepartitionOnRing[j] > 0]) /2
+    sumSquaredDistance = sum([sum([fishRepartitionOnRing[k] * fishRepartitionOnRing[j] * min((k-j)%ringSize,(j-k)%ringSize)**2 for k in range(ringSize) if fishRepartitionOnRing[k] > 0]) for j in range(ringSize) if fishRepartitionOnRing[j] > 0]) /2
     sumSquaredDistanceHist.append(sumSquaredDistanceHist)
 
 #Size of groups
-    numberOfNeighbour = [fishRepartitionOnRing[i - 2] + fishRepartitionOnRing[i - 1] + fishRepartitionOnRing[i] if fishRepartitionOnRing[i] > 0  else 0 for i in range(ringSize)]
+    numberOfNeighbour = [fishRepartitionOnRing[i - 2] + fishRepartitionOnRing[i - 1] + fishRepartitionOnRing[i] if fishRepartitionOnRing[i-1] > 0  else 0 for i in range(ringSize)]
     maxNumberOfNeighbour = max(numberOfNeighbour)
     minNumberOfNeighbour = min([i for i in numberOfNeighbour if i > 0])
     maxNumberOfNeighbourHist.append(maxNumberOfNeighbour)
     minNumberOfNeighbourHist.append(minNumberOfNeighbour)
 
     #Time before the first group
-    if (maxNumberOfNeighbour > minSizeOfGroup) and (i % cycleLength < firstTimeInGroup):
-        firstTimeInGroup = i % cycleLength
+    if (maxNumberOfNeighbour > minSizeOfGroup) and (t % cycleLength < firstTimeInGroup):
+        firstTimeInGroup = t % cycleLength
 
 ################################################
 #                 After Run process            #
