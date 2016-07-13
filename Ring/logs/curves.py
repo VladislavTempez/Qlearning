@@ -8,12 +8,17 @@ def smoothCurve(curve,windowsSize = -1):
     res=[]
     for j in range(math.ceil(len(curve)/windowsSize)):
         res.append(0)
+        k = 0
         for i in range(windowsSize):
             if i+j*windowsSize < len(curve): 
+                k = k + 1
                 res[j] = res[j] + curve[i+j * windowsSize]
             else :
                 break
-        res[j] =res[j] / windowsSize
+        if k==0:
+            res[j] = 0
+        else:
+            res[j] =res[j] / k
     return res
 
 def smoothSparseCurve(curve,windowsSize=-1):
