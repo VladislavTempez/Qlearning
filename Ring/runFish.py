@@ -13,41 +13,101 @@ import pickle
 #To readQmaps and compare them
 from QmapFunctions import *
 
+from sys import argv
+import os
+import shutil
+
 ################################################
 #                 Parameters                   #
 ################################################
+if len(argv) > 1:
+    script, pathToConf = argv
+else:
+    [script] = argv
+    pathToConf = 'parameters.conf'
+try:
+#opening and parsing conf file
+    paramFile = open(pathToConf,'r')
+    paramLines = paramFile.readlines()
+    paramFile.close()
+    param = {i.split('=')[0].replace(' ','') : i.split('=')[1].replace(' ','').replace('\n','') 
+            for i in paramLines if ((i[0] !='#') and (i[0] != '\n'))}
+    learnersNumber = int(param['learnersNumber'])
+    adultsNumber = int(param['adultsNumber'])
+    popSize = learnersNumber + adultsNumber
+    ringSize = int(param['ringSize'])
+    #At the begining of a cycle, positions are reset
+    cycleLengthInRingSize = int(param['cycleLengthInRingSize'])
 
-learnersNumber = 10
-adultsNumber = 0 
-popSize = learnersNumber + adultsNumber
-ringSize = 13 
-#At the begining of a cycle, positions are reset
-cycleLength = 5 * ringSize
+    runDurationInCycles = int(param['runDurationInCycles'])
+    #reward for being in the group
+    reward = int(param['reward'])
 
-runDuration = cycleLength *  25
+    #penalty for begin alone in the central sector
+    penalty = int(param['penalty'])
 
-#reward for being in the group
-reward = 100
+    #Minimum number of individuals in the group
+    minSizeOfGroup = int(param['minSizeOfGroup'])
 
-#penalty for begin alone in the central sector
-penalty = -5 
+    minimumDistanceToBeInGroup = int(param['minimumDistanceToBeInGroup'])
 
-#Minimum number of individuals in the group
-minSizeOfGroup = math.floor(10 * 0.8)
+    # Setting the parameters for explore rate evolution in alpha / (alpha + n). 
+    # Fraction of the run at which exploreRate is decreaseValue
+    fixedLearning = bool(param['fixedLearning'])
+    fixedExploration = bool(param['fixedExploration'])
+    learningRate = float(param['learningRate'])
+    exploreRate = float(param['exploreRate'])
+    decreasePoint = float(param['decreasePoint'])
+    decreaseValue = float(param['decreaseValue'])
 
-minimumDistanceToBeInGroup = 1
 
-# Setting the parameters for explore rate evolution in alpha / (alpha + n). 
-# Fraction of the run at which exploreRate is decreaseValue
-decreasePoint = 1 / 2
-decreaseValue = 1 / 2 
+    # Fraction of the simulation at which there is no longer exploration and behaviour is tested.
+    pointToStopExploration = float(param['pointToStopExploration'])
+    pathToLogs = param['pathToLogs'].replace("'",'')
+    pathToQMapsList = param['pathToQMapsList'].replace("'",'')
+except (ValueError,KeyError): 
+    print('No parameters file, using default parameters')
+    learnersNumber = 10
+    adultsNumber = 0 
+    popSize = learnersNumber + adultsNumber
+    ringSize = 13 
+    #Duration of a cycle in ringSize. At the begining of a cycle, positions are reset. 
+    cycleLengthInRingSize = 5 
+    #Duration of the run in cycleLength
+    runDurationInCycles = 25
 
-# Fraction of the simulation at which there is no longer exploration and behaviour is tested.
-pointToStopExploration = 9/10 * runDuration
+    #reward for being in the group
+    reward = 100
+
+    #penalty for begin alone in the central sector
+    penalty = -5 
+
+    #Minimum number of individuals in the group
+    minSizeOfGroup = math.floor(10 * 0.8)
+
+    minimumDistanceToBeInGroup = 1
+
+    # Setting the parameters for explore rate evolution in alpha / (alpha + n). 
+    # Fraction of the run at which exploreRate is decreaseValue
+    decreasePoint = 0.5 
+    decreaseValue = 0.5 
+    fixedLearning = True 
+    fixedExploration = True
+    learningRate = 0.1
+    exploreRate = 0.1
+
+    # Fraction of the simulation at which there is no longer exploration and behaviour is tested.
+    pointToStopExploration = 0.9
+    #Path where to write the logs
+    pathToLogs = 'logs/' 
+    pathToQMapsList = 'logs/QMaps' 
 
 ################################################
 #                 Useful values                #
 ################################################
+cycleLength =  cycleLengthInRingSize * ringSize
+runDuration = runDurationInCycles * cycleLength
+stepToStopExploration = pointToStopExploration * runDuration
 alpha = decreaseValue * runDuration * decreasePoint / (1 - decreaseValue)
 
 #Reset position of the fishes and the cycle informations
@@ -81,18 +141,20 @@ adults = []
 learners = []
 
 #metrics
-joinGroupDateLearnersHist = []
-timeInGroupLearnersHist = []
-joinGroupDateAdultsHist = []
-timeInGroupAdultsHist = []
+sumSquaredDistanceHist = []
+maxNumberOfNeighbourHist = []
+minNumberOfNeighbourHist = []
+firstTimeInGroupHist = []
+firstTimeInGroup = cycleLength;
 
 #Get a Qmap list from a list of fish files
 try:
-    fishNamesFile = open('logs/Fish/FishToIntegrate','r')
+    fishNamesFile = open(pathToQMapsList,'r')
     fishNamesList = fishNamesFile.read().split('\n')
-    listQmap = [getKnowledgeFromFish('logs/Fish/'+fishName) for fishName in fishNamesList if fishName != '']
+    listQmap = [getKnowledgeFromFish(pathToQmapsList+fishName) for fishName in fishNamesList if fishName != '']
 except FileNotFoundError:
-    print('No adults found')
+    if (adultsNumber > 0):
+        print('No adults found')
     listQmap = [{}]
 
 #Initializing adults
@@ -121,15 +183,17 @@ for f in adults:
         f.Q = listQmap[adults.index(f)].copy()
     else:
         f.Q = random.choice(listQmap).copy()
-    f.exploreRateMutable = False
-    f.exploreRate = 0.
-    f.learningRateMutable = False
-    f.learningRate = 0.0
 
 #Initializing position a vision (i.e. the other agents that are seen by the agent)
 for f in pop :
     f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
     f.vision = pop
+    if fixedLearning:
+        f.learningRateMutable = False
+        f.learningRate = learningRate
+    if fixedLearning:
+        f.exploreRateMutable = False
+        f.exploreRate = exploreRate
 
 ################################################
 #            Main Loop                         #
@@ -138,10 +202,8 @@ for f in pop :
 for t in range(runDuration):
     #Begining of a cycle.
     if t % cycleLength == 0 and t > 0:
-        joinGroupDateLearnersHist.append([f.joinGroupDate for f in learners])
-        timeInGroupLearnersHist.append([f.timeInGroup for f in learners])
-        joinGroupDateAdultsHist.append([f.joinGroupDate for f in adults])
-        timeInGroupAdultsHist.append([f.timeInGroup for f in adults])
+        firstTimeInGroupHist.append(firstTimeInGroup)
+        firstTimeInGroup = cycleLength;
         reset(pop,t,cycleLength)
 
     #Updating the state of the agents in the neww environment.
@@ -149,7 +211,7 @@ for t in range(runDuration):
         f.update(f,t)
 
     #After a point the fishes are no longer exploring.
-    if t > pointToStopExploration:
+    if t > stepToStopExploration:
         f.exploreRateMutable = False
         f.learningRateMutable = False
         f.exploreRate = 0.1
@@ -163,6 +225,28 @@ for t in range(runDuration):
     for f in pop :
         f.act()
 
+    #Computing Metrics
+    fishPositionOnRing = []
+    for f in pop:
+        fishPositionOnRing.append(f.pos)
+    fishRepartitionOnRing = [0 for k in range(ringSize)]
+    for j in fishPositionOnRing:
+        fishRepartitionOnRing[j] = fishRepartitionOnRing[j] + 1
+
+    #sum of squared distances
+    sumSquaredDistance = sum([sum([fishRepartitionOnRing[k] * fishRepartitionOnRing[j] * min((k-j)%ringSize,(j-k)%ringSize) for k in range(ringSize) if fishRepartitionOnRing[k] > 0]) for j in range(ringSize) if fishRepartitionOnRing[j] > 0]) /2
+    sumSquaredDistanceHist.append(sumSquaredDistanceHist)
+
+#Size of groups
+    numberOfNeighbour = [fishRepartitionOnRing[i - 2] + fishRepartitionOnRing[i - 1] + fishRepartitionOnRing[i] if fishRepartitionOnRing[i] > 0  else 0 for i in range(ringSize)]
+    maxNumberOfNeighbour = max(numberOfNeighbour)
+    minNumberOfNeighbour = min([i for i in numberOfNeighbour if i > 0])
+    maxNumberOfNeighbourHist.append(maxNumberOfNeighbour)
+    minNumberOfNeighbourHist.append(minNumberOfNeighbour)
+
+    #Time before the first group
+    if (maxNumberOfNeighbour > minSizeOfGroup) and (i % cycleLength < firstTimeInGroup):
+        firstTimeInGroup = i % cycleLength
 
 ################################################
 #                 After Run process            #
@@ -172,31 +256,32 @@ for t in range(runDuration):
 #print(distanceMatrix([f.Q for f in pop],discreteDistance))
 
 #Computing the average number of rewards
-timeOfReward = []
-for i in range(runDuration):
-    timeOfReward.append(0)
-for f in pop:
-    for j in f.dateOfReward:
-            timeOfReward[j] = timeOfReward[j] + 1
-
 #Generating file name and unique ID
 date = time.time()
 idFile = math.ceil((date - math.ceil(date))*1000000) % 1000
 timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
 
-#Generating fishes logs
-for f in pop:
-    f.genLogs(idFile,timeNow)
 
 #Generating logs for the whole learning phase
-logRun = open('logs/logRunD_'+str(math.log10(runDuration))+'P_'+str(popSize)+'S_'+str(ringSize)+'-'+timeNow+'-'+str(idFile)+'.log','wb')
+#Creating folder to store files
+pathToFile = pathToLogs + str(idFile) + '_D' + str(runDurationInCycles) + '_P' + str(popSize) + '_S' str(ringSize) + '-' + timeNow+'/'
+os.makedirs(pathToFile, exist_ok = True)
+#Keeping a copy of source code that generated the logs
+shutil.copyfile(script,pathToFile+script)
+shutil.copyfile('fish.py',pathToFile+'fish.py')
+
+logRun = open(pathToFile+'run.log','wb')
 
 #Learning phase parameters stored
-infos='runDuration:' + str(runDuration) + '\n'
+infos = 'runDuration:' + str(runDuration) + '\n'
 infos = infos +'popSize:' + str(popSize) + '\n' 
 infos = infos + 'ringSize:' + str(ringSize) + '\n' 
 infos = infos + 'decreasePoint:' + str(decreasePoint) + '\n'
 infos = infos + 'decreaseValue:' + str(decreaseValue) + '\n'
+infos = infos + 'fixedLearning:' + str(fixedLearning) + '\n'
+infos = infos + 'fixedExploration:' + str(fixedExploration) + '\n'
+infos = infos + 'learningRate:' + str(learningRate) + '\n'
+infos = infos + 'exploreRate:' + str(exploreRate) + '\n'
 infos = infos + 'learnersNumber:' + str(learnersNumber) + '\n'
 infos = infos + 'adultsNumber:' + str(adultsNumber) + '\n'
 infos = infos + 'reward:' + str(reward) + '\n'
@@ -208,12 +293,11 @@ infos = infos + 'cycleLength:' + str(cycleLength) + '\n'
 
 #Writing Data
 pickle.dump(infos,logRun,2)
+pickle.dump(sumSquaredDistanceHist,logRun,2)
+pickle.dump(firstTimeInGroupHist,logRun,2)
+pickle.dump(maxNumberOfNeighbourHist,logRun,2)
+pickle.dump(minNumberOfNeighbourHist,logRun,2)
 
-pickle.dump(timeOfReward,logRun,2)
-pickle.dump(joinGroupDateLearnersHist,logRun,2)
-pickle.dump(timeInGroupLearnersHist,logRun,2)
-pickle.dump(joinGroupDateAdultsHist,logRun,2)
-pickle.dump(timeInGroupAdultsHist,logRun,2)
 
 for f in adults:
     pickle.dump(f.posHistory,logRun,2)
@@ -222,3 +306,6 @@ for f in learners:
 
 logRun.close()
 
+#Generating fishes logs
+for f in pop:
+    f.genLogs(pathToFile)

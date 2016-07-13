@@ -4,7 +4,8 @@
 
 import math
 import random
-#To date the end of the learnin phase
+from operator import itemgetter
+#To date the end of the learning phase
 import time
 #To write logs
 import pickle 
@@ -21,11 +22,21 @@ numberOfRepresentant = 10
 #Initialize id for fishes
 fishId = 0
 
-#From a number vector a_i gives the vector b were b_i is the rank of a_i in a.
-def rank(valueList):
+
+def rankDecreasing(valueList):
     indexList = [(valueList[i],i) for i in range(len(valueList))]
-    indexList.sort()
+    indexList.sort(key = itemgetter(1), reverse = True)
     return [b for (a,b) in indexList]
+
+def probaDistributionToDiscreteDistribution(probaDist,numberOfRepresentant):
+    discreteDistribution = [math.floor(i * numberOfRepresentant) for i in probaDist]
+    decimalPart = [probaDist[i] - discreteDistribution[i] for i in range(len(probaDist))]
+#From a number vector a_i gives the vector b were b_i is the rank of a_i in a in decreasing order
+    rankDecimal = rankDecreasing(decimalPart) 
+    remainingRepresentant = numberOfRepresentant - sum(discreteDistribution)
+    for i in range(remainingRepresentant):
+        discreteDistribution[rankDecimal[i]] += 1
+    return discreteDistribution
 
 #Global ID generator
 def newID():
@@ -66,10 +77,52 @@ def sectorInit(self) :
     
     return sectors
 
+#Returns a dict indexed by the names of the sectors and containing positions corresponding to the key sector as a value
+def sectorInit2(self):
+    sectors = {}
+
+#Sizes of sectors :
+    centralSectorSize = self.criticalSize * 2 + 1
+    sectorsProportions = [0.16,0.21,0.26]
+    [nearSectorSize,farSectorSize,unknownSectorSize] = probaistributionToDiscreteDistribution(sectorsDistribution,self.ringSize - centralSectorSize)
+    sectors['central'] = []
+    sectors['nearLeft'] = []
+    sectors['nearRight'] = []
+    sectors['farLeft'] = []
+    sectors['farRight'] = []
+    sectors['unknown'] = []
+    i = - math.floor(centralSectorSize/2)
+    for j in range(centralSectorSize):
+        sectors['central'].append(i % self.ringSize)
+        i += 1
+    for j in range(nearSectorSize):
+        sectors['nearLeft'].append(i)
+        i += 1
+    for j in range(farSectorSize):
+        sectors['farLeft'].append(i)
+        i += 1
+    for j in range(unknownSectorSize):
+        sectors['unknown'].append(i)
+        i += 1
+    for j in range(farSectorSize):
+        sectors['farRight'].append(i)
+        i += 1
+    for j in range(nearSectorSize):
+        sectors['nearRight'].append(i)
+        i += 1
+    print(sectors)
+    return sectors
+
 #Returns the sector in which is a fish relatively to the agent.
 def getSector(self,fish):
     relativePos = (fish.pos - self.pos) % self.ringSize
     return self.sectors[relativePos]
+
+def getSector2(self,fish):
+    relativePos = (fish.pos - self.pos) % self.ringSize
+    for sector,sectorPos in self.sectors.items():
+        if relativePos in sectorPos:
+            return sector
 
 #Return the state of the environment as the agent sees it.
 def getState(self):
@@ -77,25 +130,12 @@ def getState(self):
     state = [0 for i in self.sectorList]
     popSize = len(self.vision)
 
-#counting the fishes and storing their position
+#Ccounting the fishes and storing their position
     for fish in self.vision:
         fishSector = getSector(self,fish)
-        fishDistribution[self.sectorList.index(fishSector)] = fishDistribution[self.sectorList.index(fishSector)] + 1
-        
-#computing the number of representants needed for each sector : we get real values.
-    fishRepresentant = [j / popSize * numberOfRepresentant for j in fishDistribution]
+        fishDistribution[self.sectorList.index(fishSector)] += 1
+    state = probaDistributionToDiscreteDistribution([i/popSize for i in fishDistribution],numberOfRepresentant)
 
-#computing the integer part of the number of representants.
-    state = [math.floor(j) for j in fishRepresentant]
-    distributionRemaining = [fishRepresentant[i] - state[i] for i in range(len(state))]
-
-#sorting the sectors by decreasing remaining decimal part.
-    rankedDistributionRemaining = rank(distributionRemaining)
-    remainingRepresentant = numberOfRepresentant - sum(state)
-
-#dispatching remaining representant to sectors that have the higher decimal part.
-    for i in range(remainingRepresentant):
-        state[rankedDistributionRemaining[i]] = state[rankedDistributionRemaining[i]] + 1
     if sum(state) >  numberOfRepresentant:
         print('Error in selection of representants')
     return tuple(state)
@@ -130,12 +170,14 @@ def policy(self):
 
 def updateLearning(self,date):
 
+#Updating the state
     self.lastState = self.currentState
     self.currentState = self.getState(self)
     self.posHistory.append(self.pos)
     self.timeSinceReward = self.timeSinceReward + 1
 
-#Updating eligibility trace. Storing and eligibility value in a dict to prevent eligibility trace to get to long. Each value is sum(lambda^-k) for k the time at which the state was visited. When clearing it, multiplying by lambda^n give the correct value to it, making fresher action more rewarded and older one more discounted.
+#Updating eligibility trace. 
+#Storing an eligibility value in a dict to prevent eligibility trace to get too long. Each value is sum(lambda^-k) where k is the time at which the state was visited. When clearing it, multiplying by lambda^n give the correct value to it, making fresher action more rewarded and older ones more discounted.
 
     oldEligibility = self.eligibilityTrace.get(self.lastState,{}).get(self.lastAction,0)
     newEligibility = oldEligibility + self.discountFactor ** (-self.timeSinceReward)
@@ -160,20 +202,24 @@ def updateLearning(self,date):
         return
     else:
         expectedCumulativeReward = max([self.Q.get(self.currentState,{}).get(action,0) for action in self.actions.keys()])
+        #expectedCumulativeReward = 0
+
+        #unloading eligibility trace
         for state,vTemp in self.eligibilityTrace.items():
 
             for action,value in vTemp.items():
 
                 oldQValue = self.Q.get(state,{}).get(action,0)
                 eligibility = value * (self.discountFactor) ** (self.timeSinceReward)
-                newQValue = (1-self.learningRate) * oldQValue + self.learningRate * eligibility * (reward + expectedCumulativeReward)
+                newQValue = (1-self.learningRate * eligibility) * oldQValue + self.learningRate * eligibility * (reward + expectedCumulativeReward)
+                #initializing unknown states
                 if not (state in self.Q.keys()):
                     self.Q[state] = {action : 0 for action in self.actions.keys()}
+                #updating Q
                 self.Q[state][action] = newQValue
 
-        if reward > 0:
-            self.dateOfReward.append(date)
-        self.eligibilityTrace = {}
+        #reseting eligibility trace
+        self.eligibilityTrace.clear()
         self.timeSinceReward = 0
 
 #Define the reward associated to each state
@@ -242,7 +288,6 @@ class Fish:
         self.states = []
         self.eligibilityTrace = {}
         self.posHistory = []
-        self.dateOfReward=[]
         self.timeSinceReward = 0
         self.exploreRateMutable = True
         self.learningRateMutable = True
@@ -270,16 +315,14 @@ class Fish:
         self.actions[self.nextAction](self)
         self.nextAction = None
 
-    def genLogs(self,idFile,timeNow):
-        title='Fish'+str(self.idFish)
-        title = title + '-' + timeNow + '-' + str(idFile)
-        logFile=open('./logs/Fish/'+ title +'.log','wb')
+    def genLogs(self,path):
+        title = 'Fish'+ str(self.idFish)
+        logFile = open(path + title +'.log','wb')
         infos = '' 
         infos = infos + 'age:' + str(self.age) + '\n'
         pickle.dump(infos,logFile,2)
         pickle.dump(self.Q,logFile,2)
         pickle.dump(self.posHistory,logFile,2)
-        pickle.dump(self.dateOfReward,logFile,2)
         logFile.close()
         return
 
