@@ -264,7 +264,7 @@ timeNow = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime())
 
 #Generating logs for the whole learning phase
 #Creating folder to store files
-pathToFile = pathToLogs + str(idFile) + '_D' + str(runDurationInCycles) + '_P' + str(popSize) + '_S' str(ringSize) + '-' + timeNow+'/'
+pathToFile = pathToLogs + str(idFile) + '_D' + str(runDurationInCycles) + '_P' + str(popSize) + '_S'+ str(ringSize) + '-' + timeNow+'/'
 os.makedirs(pathToFile, exist_ok = True)
 #Keeping a copy of source code that generated the logs
 shutil.copyfile(script,pathToFile+script)
