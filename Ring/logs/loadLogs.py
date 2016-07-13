@@ -9,6 +9,8 @@ def load(filename):
     ringSize = int(infos[2].split(':')[1])
     decreasePoint = float(infos[3].split(':')[1])
     decreaseValue = float(infos[4].split(':')[1])
+    learningRate = float(infos[7].split(':')[1])
+    exploreRate = float(infos[8].split(':')[1])
     learnersNumber = int(infos[9].split(':')[1])
     adultsNumber = int(infos[10].split(':')[1])
     reward = int(infos[11].split(':')[1])
@@ -33,6 +35,8 @@ def load(filename):
             cycleLength
             ]
     print('Run Duration :',runDuration)
+    print('Learning Rate :',learningRate)
+    print('Explore Rate :',exploreRate)
     print('Population Size :',popSize)
     print('Learners :',learnersNumber)
     print('Adults :',adultsNumber)
