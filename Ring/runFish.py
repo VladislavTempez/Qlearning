@@ -132,6 +132,21 @@ def getKnowledgeFromFish(FishName):
     fish.close()
     return Q
 
+#From a number vector a_i gives the vector b were b_i is the rank of a_i in a in decreasing order
+def rankDecreasing(valueList):
+    indexList = [(valueList[i],i) for i in range(len(valueList))]
+    indexList.sort(key = itemgetter(1), reverse = True)
+    return [b for (a,b) in indexList]
+
+def probaDistributionToDiscreteDistribution(probaDist,numberOfRepresentant):
+    discreteDistribution = [math.floor(i * numberOfRepresentant) for i in probaDist]
+    decimalPart = [probaDist[i] - discreteDistribution[i] for i in range(len(probaDist))]
+    rankDecimal = rankDecreasing(decimalPart) 
+    remainingRepresentant = numberOfRepresentant - sum(discreteDistribution)
+    for i in range(remainingRepresentant):
+        discreteDistribution[rankDecimal[i]] += 1
+    return discreteDistribution
+
 ################################################
 #            Variables Initialization          #
 ################################################
@@ -232,12 +247,12 @@ for t in range(runDuration):
     fishRepartitionOnRing = [0 for k in range(ringSize)]
     for j in fishPositionOnRing:
         fishRepartitionOnRing[j] += 1
-
+    fishRepartitionOnRing = probaDistributionToDiscreteDistribution([i/popSize for i in fishRepartitionOnRing],pop[0].numberOfRepresentant)
     #sum of squared distances
     sumSquaredDistance = sum([sum([fishRepartitionOnRing[k] * fishRepartitionOnRing[j] * min((k-j)%ringSize,(j-k)%ringSize)**2 for k in range(ringSize) if fishRepartitionOnRing[k] > 0]) for j in range(ringSize) if fishRepartitionOnRing[j] > 0]) /2
     sumSquaredDistanceHist.append(sumSquaredDistanceHist)
 
-#Size of groups
+    #Size of groups
     numberOfNeighbour = [fishRepartitionOnRing[i - 2] + fishRepartitionOnRing[i - 1] + fishRepartitionOnRing[i] if fishRepartitionOnRing[i-1] > 0  else 0 for i in range(ringSize)]
     maxNumberOfNeighbour = max(numberOfNeighbour)
     minNumberOfNeighbour = min([i for i in numberOfNeighbour if i > 0])

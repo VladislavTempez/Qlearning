@@ -23,6 +23,7 @@ numberOfRepresentant = 10
 fishId = 0
 
 
+#From a number vector a_i gives the vector b were b_i is the rank of a_i in a in decreasing order
 def rankDecreasing(valueList):
     indexList = [(valueList[i],i) for i in range(len(valueList))]
     indexList.sort(key = itemgetter(1), reverse = True)
@@ -31,7 +32,6 @@ def rankDecreasing(valueList):
 def probaDistributionToDiscreteDistribution(probaDist,numberOfRepresentant):
     discreteDistribution = [math.floor(i * numberOfRepresentant) for i in probaDist]
     decimalPart = [probaDist[i] - discreteDistribution[i] for i in range(len(probaDist))]
-#From a number vector a_i gives the vector b were b_i is the rank of a_i in a in decreasing order
     rankDecimal = rankDecreasing(decimalPart) 
     remainingRepresentant = numberOfRepresentant - sum(discreteDistribution)
     for i in range(remainingRepresentant):
@@ -277,6 +277,7 @@ class Fish:
         self.getState = getState
         self.sectors = sectorInit(self)
         self.sectorList = [] 
+        self.numberOfRepresentant = numberOfRepresentant
         
 #Defining the format of state representation, here its the sectors in order i for increasing positions on the ring
         for j in self.sectors:
