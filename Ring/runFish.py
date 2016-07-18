@@ -100,7 +100,7 @@ except (ValueError,KeyError):
     pointToStopExploration = 0.9
     #Path where to write the logs
     pathToLogs = 'logs/' 
-    pathToQMapsList = 'logs/QMaps' 
+    pathToQMapsList = 'logs/QMaps/' 
 
 ################################################
 #                 Useful values                #
@@ -164,9 +164,9 @@ firstTimeInGroup = cycleLength;
 
 #Get a Qmap list from a list of fish files
 try:
-    fishNamesFile = open(pathToQMapsList,'r')
+    fishNamesFile = open(pathToQMapsList+'QMaps','r')
     fishNamesList = fishNamesFile.read().split('\n')
-    listQmap = [getKnowledgeFromFish(pathToQmapsList+fishName) for fishName in fishNamesList if fishName != '']
+    listQmap = [getKnowledgeFromFish(pathToQMapsList+fishName) for fishName in fishNamesList if fishName != '']
 except FileNotFoundError:
     if (adultsNumber > 0):
         print('No adults found')
