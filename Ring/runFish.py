@@ -193,17 +193,6 @@ for i in range(learnersNumber):
 
 pop = adults + learners
 
-#Giving already filled Qmaps for adults
-for f in adults:
-    if len(listQmap) >= len(adults):
-        f.Q = listQmap[adults.index(f)].copy()
-    else:
-        f.Q = random.choice(listQmap).copy()
-    f.learningRateMutable = False
-    f.learningRate = 0.0
-    f.exploreRateMutable = False
-    f.exploreRate = 0.1
-
 #Initializing position a vision (i.e. the other agents that are seen by the agent)
 for f in pop :
     f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
@@ -217,6 +206,17 @@ for f in pop :
 #flagging variable learning rate with a specific value for initial learnig rate
 if not fixedLearning:
     learningRate = 1
+
+#Giving already filled Qmaps for adults
+for f in adults:
+    if len(listQmap) >= len(adults):
+        f.Q = listQmap[adults.index(f)].copy()
+    else:
+        f.Q = random.choice(listQmap).copy()
+    f.learningRateMutable = False
+    f.learningRate = 0.0
+    f.exploreRateMutable = False
+    f.exploreRate = 0.1
 ################################################
 #            Main Loop                         #
 ################################################

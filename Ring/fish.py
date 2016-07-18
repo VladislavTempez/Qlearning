@@ -154,7 +154,10 @@ def policy(self):
     else :
 # nothing is known about this state, initializing it at 0.
         if not (s in self.Q.keys()):  
-            self.Q[s] = {action : 0 for action in self.actions.keys()}
+            #self.Q[s] = {action : 0 for action in self.actions.keys()}
+            self.nextAction = random.choice([a for a in self.actions.keys()])
+            self.lastMoveRandom = True
+            return
 
 #Computing highest value action
 
@@ -215,7 +218,7 @@ def updateLearning(self,date):
 
                 oldQValue = self.Q.get(state,{}).get(action,0)
                 eligibility = value * (self.discountFactor) ** (self.timeSinceReward)
-                newQValue = (1-self.learningRate * eligibility) * oldQValue + self.learningRate * eligibility * (reward + expectedCumulativeReward)
+                newQValue = (1-self.learningRate * eligibility) * oldQValue + self.learningRate * eligibility * (reward + self.discountFactor * expectedCumulativeReward)
                 #initializing unknown states
                 if not (state in self.Q.keys()):
                     self.Q[state] = {action : 0 for action in self.actions.keys()}
