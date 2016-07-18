@@ -185,10 +185,11 @@ def updateLearning(self,date):
 #Updating eligibility trace. 
 #Storing an eligibility value in a dict to prevent eligibility trace to get too long. Each value is sum(lambda^-k) where k is the time at which the state was visited. When clearing it, multiplying by lambda^n give the correct value to it, making fresher action more rewarded and older ones more discounted.
     oldEligibility = self.eligibilityTrace.get(self.lastState,{}).get(self.lastAction,0)
-    if self.lastMoveRandom:
-        newEligibility = 0
-    else:
-        newEligibility = oldEligibility + self.discountFactor ** (-self.timeSinceReward)
+#    if self.lastMoveRandom:
+#        newEligibility = 0
+#    else:
+#        newEligibility = oldEligibility + self.discountFactor ** (-self.timeSinceReward)
+    newEligibility = oldEligibility + self.discountFactor ** (-self.timeSinceReward)
     if self.lastState in self.eligibilityTrace.keys():
         self.eligibilityTrace[self.lastState][self.lastAction] = newEligibility 
     else :
