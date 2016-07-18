@@ -119,7 +119,8 @@ def reset(pop,date,cycleLength):
         f.lastState = None
         f.joinGroupDate = cycleLength
         f.timeInGroup = 0
-        f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
+        #f.pos = (pop.index(f) * math.ceil(f.ringSize / len(pop)) + round(2*random.random()-1) ) % f.ringSize
+        f.pos = random.randint(0,ringSize-1)
         f.currentState = f.getState(f)
     return
 
