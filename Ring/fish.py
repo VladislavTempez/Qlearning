@@ -282,6 +282,7 @@ class Fish:
         self.sectors = sectorInit(self)
         self.sectorList = [] 
         self.numberOfRepresentant = numberOfRepresentant
+        self.lastMoveRandom = False
         
 #Defining the format of state representation, here its the sectors in order i for increasing positions on the ring
         for j in self.sectors:
