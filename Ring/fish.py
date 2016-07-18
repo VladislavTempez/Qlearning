@@ -148,6 +148,7 @@ def policy(self):
 # taking one action at random to explore
     if r < self.exploreRate :
         self.nextAction = random.choice([k for k in self.actions.keys()])
+        self.lastMoveRandom = True
 
 # chosing the action that maximizes the reward.
     else :
@@ -165,8 +166,10 @@ def policy(self):
 #all known actions are equivalent, choosing randomly
         if maxVal == minVal:
             self.nextAction = random.choice(possibleActions)
+            self.lastMoveRandom = True
         else :
             self.nextAction = maxAction
+            self.lastMoveRandom = False
 
 def updateLearning(self,date):
 
@@ -178,10 +181,11 @@ def updateLearning(self,date):
 
 #Updating eligibility trace. 
 #Storing an eligibility value in a dict to prevent eligibility trace to get too long. Each value is sum(lambda^-k) where k is the time at which the state was visited. When clearing it, multiplying by lambda^n give the correct value to it, making fresher action more rewarded and older ones more discounted.
-
     oldEligibility = self.eligibilityTrace.get(self.lastState,{}).get(self.lastAction,0)
-    newEligibility = oldEligibility + self.discountFactor ** (-self.timeSinceReward)
-
+    if self.lastMoveRandom:
+        newEligibility = 0
+    else:
+        newEligibility = oldEligibility + self.discountFactor ** (-self.timeSinceReward)
     if self.lastState in self.eligibilityTrace.keys():
         self.eligibilityTrace[self.lastState][self.lastAction] = newEligibility 
     else :
@@ -198,7 +202,7 @@ def updateLearning(self,date):
     self.lastReward = reward
     
 #Updating Q
-    if reward == 0:
+    if reward == 0 or self.learningRate == 0:
         return
     else:
         expectedCumulativeReward = max([self.Q.get(self.currentState,{}).get(action,0) for action in self.actions.keys()])

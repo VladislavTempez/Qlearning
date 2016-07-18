@@ -198,6 +198,10 @@ for f in adults:
         f.Q = listQmap[adults.index(f)].copy()
     else:
         f.Q = random.choice(listQmap).copy()
+    f.learningRateMutable = False
+    f.learningRate = 0.0
+    f.exploreRateMutable = False
+    f.exploreRate = 0.1
 
 #Initializing position a vision (i.e. the other agents that are seen by the agent)
 for f in pop :
