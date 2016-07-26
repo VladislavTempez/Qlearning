@@ -216,7 +216,7 @@ for f in adults:
     f.learningRateMutable = False
     f.learningRate = 0.0
     f.exploreRateMutable = False
-    f.exploreRate = 0.1
+    f.exploreRate = 0.0
 ################################################
 #            Main Loop                         #
 ################################################
@@ -272,8 +272,8 @@ for t in range(runDuration):
 #                 After Run process            #
 ################################################
 
-#print([len(f.Q) for f in learners])
-#print(distanceMatrix([f.Q for f in pop],discreteDistance))
+print([len(f.Q) for f in adults])
+print(distanceMatrix([f.Q for f in pop],discreteDistance))
 
 #Computing the average number of rewards
 #Generating file name and unique ID
