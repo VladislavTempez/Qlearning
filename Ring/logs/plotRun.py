@@ -4,21 +4,25 @@ from computableMetrics import *
 from firstTimeInGroupPlotFunction import *
 from neighbourNumberPlotFunction import *
 from sys import argv
+from boxplot import *
 if len(argv) > 1:
     script, filename = argv
 else:
     filename='logsLoc'
 
-logsLocFile=open(filename)
-logsFileName=logsLocFile.read().splitlines()[0]
+logsLocFile = open(filename)
+logsFileNameList = logsLocFile.read().splitlines()
 logsLocFile.close()
+for logsFileName in logsFileNameList:
+    infos,sumSquaredDistanceHist,firstTimeInGroupHist,maxNumberOfNeighbour,minNumberOfNeighbour,posHistoryA,posHistoryL = load(logsFileName)
 
-infos,sumSquaredDistanceHist,firstTimeInGroupHist,maxNumberOfNeighbour,minNumberOfNeighbour,posHistoryA,posHistoryL = load(logsFileName)
+    plotFirstTimeInGroup(infos,firstTimeInGroupHist)
 
-plotFirstTimeInGroup(infos,firstTimeInGroupHist)
+    plotNumberOfNeighbour(infos,minNumberOfNeighbour,maxNumberOfNeighbour)
+   
+    plotPos(infos,posHistoryA,posHistoryL)
+    
+#    boxPlot(infos,firstTimeInGroupHist,minNumberOfNeighbour,maxNumberOfNeighbour)
 
-plotNumberOfNeighbour(infos,minNumberOfNeighbour,maxNumberOfNeighbour)
+#    plotMetrics(infos,posHistoryA,posHistoryL)
 
-#plotMetrics(infos,posHistoryA,posHistoryL)
-
-plotPos(infos,posHistoryA,posHistoryL)
